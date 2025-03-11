@@ -3,36 +3,49 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:keepScreenOn="true">
 
-    <!-- Container for two camera previews -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="horizontal">
 
-        <!-- Normal camera preview -->
         <androidx.camera.view.PreviewView
-            android:id="@+id/previewViewNormal"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1" />
-
-        <!-- Mirrored camera preview -->
-        <androidx.camera.view.PreviewView
-            android:id="@+id/previewViewMirror"
+            android:id="@+id/previewViewLeft"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:scaleX="-1"
+            app:implementationMode="compatible" />
+
+        <androidx.camera.view.PreviewView
+            android:id="@+id/previewViewRight"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
             app:implementationMode="compatible" />
     </LinearLayout>
 
-    <!-- Interactive overlay on top -->
-    <com.example.mirrortherapyapp.GameOverlayView
-        android:id="@+id/gameOverlayView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@android:color/transparent" />
+    <RadioGroup
+        android:id="@+id/mirrorSelector"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|center_horizontal"
+        android:orientation="horizontal"
+        android:padding="16dp">
+
+        <RadioButton
+            android:id="@+id/radioMirrorLeft"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Mirror Left" />
+
+        <RadioButton
+            android:id="@+id/radioMirrorRight"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Mirror Right" />
+    </RadioGroup>
+
 
 </FrameLayout>
