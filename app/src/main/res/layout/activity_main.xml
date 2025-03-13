@@ -6,40 +6,38 @@
     android:layout_height="match_parent"
     android:keepScreenOn="true">
 
-    <LinearLayout
+    <!-- OpenGL-based camera preview -->
+    <com.example.mirrortherapyapp.MirrorGLSurfaceView
+        android:id="@+id/mirrorGLSurfaceView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- Segmentation overlay (displays segmentation mask); this is below the game overlay -->
+    <ImageView
+        android:id="@+id/segmentationOverlayView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="horizontal">
+        android:alpha="0.5"
+        android:scaleType="fitXY" />
 
-        <androidx.camera.view.PreviewView
-            android:id="@+id/previewViewLeft"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            app:implementationMode="compatible" />
-
-        <androidx.camera.view.PreviewView
-            android:id="@+id/previewViewRight"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            app:implementationMode="compatible" />
-    </LinearLayout>
-
+    <!-- Mirror mode selector radio group -->
     <RadioGroup
-        android:id="@+id/mirrorSelector"
+        android:id="@+id/modeSelector"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="top|center_horizontal"
         android:orientation="horizontal"
         android:padding="16dp">
-
+        <RadioButton
+            android:id="@+id/radioFull"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Full" />
         <RadioButton
             android:id="@+id/radioMirrorLeft"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Mirror Left" />
-
         <RadioButton
             android:id="@+id/radioMirrorRight"
             android:layout_width="wrap_content"
@@ -47,5 +45,83 @@
             android:text="Mirror Right" />
     </RadioGroup>
 
+    <!-- UI panel for game instructions and controls -->
+    <LinearLayout
+        android:id="@+id/uiPanel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|left"
+        android:orientation="vertical"
+        android:paddingTop="64dp"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp">
+        <TextView
+            android:id="@+id/textViewTargetColor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Catch the ??? ball!"
+            android:textColor="@android:color/white"
+            android:textSize="26sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="12dp" />
+        <TextView
+            android:id="@+id/textViewTimer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Time left: 10s"
+            android:textColor="@android:color/white"
+            android:textSize="24sp"
+            android:layout_marginBottom="12dp" />
+        <TextView
+            android:id="@+id/textViewSuccess"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Success: 0"
+            android:textColor="@android:color/white"
+            android:textSize="24sp"
+            android:layout_marginBottom="12dp" />
+        <TextView
+            android:id="@+id/textViewMiss"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Miss: 0"
+            android:textColor="@android:color/white"
+            android:textSize="24sp"
+            android:layout_marginBottom="12dp" />
+        <Button
+            android:id="@+id/btnPlay"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Play" />
+        <Button
+            android:id="@+id/btnPause"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Pause" />
+        <!-- New button to toggle segmentation overlay -->
+        <Button
+            android:id="@+id/btnToggleSegmentation"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Disable Segmentation"
+            android:layout_marginTop="12dp" />
+    </LinearLayout>
 
+    <!-- Game overlay for falling balls and pop animations -->
+    <com.example.mirrortherapyapp.GameOverlayView
+        android:id="@+id/gameOverlayView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- Center get-ready text -->
+    <TextView
+        android:id="@+id/textViewGetReady"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Get Ready!"
+        android:textColor="@android:color/white"
+        android:textSize="72sp"
+        android:textStyle="bold"
+        android:visibility="invisible"
+        android:layout_gravity="center" />
 </FrameLayout>

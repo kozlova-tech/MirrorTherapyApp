@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:background="@drawable/background"
+    android:padding="24dp"
+    android:keepScreenOn="true">
+
+    <Button
+        android:id="@+id/btnNewGame"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New Game"
+        android:textColor="#FFFFFF"
+        android:background="@drawable/button_background"
+        android:textSize="72sp"
+        android:layout_marginBottom="16dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"/>
+
+
+    <Button
+        android:id="@+id/btnSettings"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Settings"
+        android:textColor="#FFFFFF"
+        android:background="@drawable/button_background"
+        android:textSize="72sp"
+        android:layout_marginBottom="16dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"/>
+
+    <Button
+        android:id="@+id/btnScoreboard"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Scoreboard"
+        android:textColor="#FFFFFF"
+        android:background="@drawable/button_background"
+        android:textSize="72sp"
+        android:layout_marginBottom="16dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"/>
+
+    <Button
+        android:id="@+id/btnQuit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="72sp"
+        android:textColor="#FFFFFF"
+        android:background="@drawable/button_background"
+        android:text="Quit"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"/>
+</LinearLayout>

@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.mirrortherapyapp"
-        minSdk = 21
+        minSdk = 24
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -61,4 +61,9 @@ dependencies {
     implementation("androidx.camera:camera-camera2:1.1.0")
     implementation("androidx.camera:camera-lifecycle:1.1.0")
     implementation("androidx.camera:camera-view:1.0.0-alpha32")
+    implementation ("com.google.mlkit:pose-detection:18.0.0-beta5")
+    implementation ("com.google.mlkit:segmentation-selfie:16.0.0-beta6")
+    implementation ("com.google.android.gms:play-services-mlkit-subject-segmentation:16.0.0-beta1")
+    implementation ("com.google.mediapipe:tasks-vision:latest.release")
+
 }

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <!-- 128 out of 255 represents about 50% opacity -->
+        <bitmap
+            android:src="@drawable/background"
+            android:alpha="0.5"/>
+    </item>
+</layer-list>
