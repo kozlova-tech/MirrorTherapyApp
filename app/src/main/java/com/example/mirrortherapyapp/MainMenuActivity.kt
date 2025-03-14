@@ -34,8 +34,7 @@ class MainMenuActivity : AppCompatActivity() {
         }
 
         btnScoreboard.setOnClickListener {
-            // For now, display a message (scoreboard not implemented)
-            Toast.makeText(this, "Scoreboard not implemented", Toast.LENGTH_SHORT).show()
+            startActivity(Intent(this, ScoreboardActivity::class.java))
         }
 
         btnQuit.setOnClickListener {

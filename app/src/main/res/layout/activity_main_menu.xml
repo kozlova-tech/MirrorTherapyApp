@@ -4,56 +4,94 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:gravity="center"
     android:background="@drawable/background"
-    android:padding="24dp"
     android:keepScreenOn="true">
 
-    <Button
-        android:id="@+id/btnNewGame"
+    <!-- Topic bar: 50% transparent purple background with centered white text -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:background="#80a30bbd">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="  Main Menu"
+            android:textColor="@android:color/white"
+            android:textSize="72sp"
+            android:textStyle="bold"
+
+            android:layout_gravity="center_vertical|start"/>
+    </FrameLayout>
+
+    <!-- Separator: a thin horizontal line -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="#FFa30bbd" />
+
+    <!-- UI panel for buttons, aligned to the left -->
+    <LinearLayout
+        android:id="@+id/uiPanel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="New Game"
-        android:textColor="#FFFFFF"
-        android:background="@drawable/button_background"
-        android:textSize="72sp"
-        android:layout_marginBottom="16dp"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"/>
+        android:orientation="vertical"
+        android:gravity="center_vertical|start"
+        android:paddingStart="24dp"
+        android:paddingTop="72dp">
 
+        <com.example.mirrortherapyapp.EmbossButton
+            android:id="@+id/btnNewGame"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="New Game"
+            android:textAllCaps="false"
+            android:textAlignment="viewStart"
+            android:textColor="#FFFFFF"
+            android:textSize="72sp"
+            android:background="@drawable/bevel_button_background"
+            android:layout_marginBottom="16dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"/>
 
-    <Button
-        android:id="@+id/btnSettings"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Settings"
-        android:textColor="#FFFFFF"
-        android:background="@drawable/button_background"
-        android:textSize="72sp"
-        android:layout_marginBottom="16dp"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"/>
+        <com.example.mirrortherapyapp.EmbossButton
+            android:id="@+id/btnSettings"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Settings"
+            android:textAllCaps="false"
+            android:textAlignment="viewStart"
+            android:textColor="#FFFFFF"
+            android:textSize="72sp"
+            android:background="@drawable/bevel_button_background"
+            android:layout_marginBottom="16dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"/>
 
-    <Button
-        android:id="@+id/btnScoreboard"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Scoreboard"
-        android:textColor="#FFFFFF"
-        android:background="@drawable/button_background"
-        android:textSize="72sp"
-        android:layout_marginBottom="16dp"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"/>
+        <com.example.mirrortherapyapp.EmbossButton
+            android:id="@+id/btnScoreboard"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Scoreboard"
+            android:textAllCaps="false"
+            android:textAlignment="viewStart"
+            android:textColor="#FFFFFF"
+            android:textSize="72sp"
+            android:background="@drawable/bevel_button_background"
+            android:layout_marginBottom="16dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"/>
 
-    <Button
-        android:id="@+id/btnQuit"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="72sp"
-        android:textColor="#FFFFFF"
-        android:background="@drawable/button_background"
-        android:text="Quit"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"/>
+        <com.example.mirrortherapyapp.EmbossButton
+            android:id="@+id/btnQuit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Quit"
+            android:textAllCaps="false"
+            android:textAlignment="viewStart"
+            android:textColor="#FFFFFF"
+            android:textSize="72sp"
+            android:background="@drawable/bevel_button_background"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"/>
+    </LinearLayout>
 </LinearLayout>

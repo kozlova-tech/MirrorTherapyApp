@@ -6,10 +6,27 @@
     android:background="@drawable/background_translucent"
     android:keepScreenOn="true">
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+    android:layout_gravity="center">
+
     <ImageView
         android:id="@+id/imageViewWelcome"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/welcome"
-        android:layout_gravity="center" />
+        android:src="@drawable/welcome" />
+
+    <TextView
+        android:id="@+id/textViewFooter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="An Elbit Systems LTD App."
+        android:textColor="#000000"
+        android:textSize="32sp"
+        android:layout_marginTop="8dp" />
+</LinearLayout>
+
 </FrameLayout>

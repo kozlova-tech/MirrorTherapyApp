@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("org.jetbrains.kotlin.kapt") // Required for Room's annotation processing
 }
 
 android {
@@ -57,13 +58,20 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     // CameraX libraries
-    implementation("androidx.camera:camera-core:1.1.0")
-    implementation("androidx.camera:camera-camera2:1.1.0")
-    implementation("androidx.camera:camera-lifecycle:1.1.0")
-    implementation("androidx.camera:camera-view:1.0.0-alpha32")
+    implementation ("androidx.camera:camera-core:1.1.0")
+    implementation ("androidx.camera:camera-camera2:1.1.0")
+    implementation ("androidx.camera:camera-lifecycle:1.1.0")
+    implementation ("androidx.camera:camera-view:1.0.0-alpha32")
     implementation ("com.google.mlkit:pose-detection:18.0.0-beta5")
     implementation ("com.google.mlkit:segmentation-selfie:16.0.0-beta6")
     implementation ("com.google.android.gms:play-services-mlkit-subject-segmentation:16.0.0-beta1")
     implementation ("com.google.mediapipe:tasks-vision:latest.release")
+
+    implementation("androidx.room:room-runtime:2.5.2")
+    kapt("androidx.room:room-compiler:2.5.2")
+    implementation("androidx.room:room-ktx:2.5.2")
+
+
+    implementation ("androidx.recyclerview:recyclerview:1.2.1")
 
 }

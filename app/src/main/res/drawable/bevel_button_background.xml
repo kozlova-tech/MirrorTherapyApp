@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Base background with your base color (#a30bbd) -->
+    <item>
+        <shape android:shape="rectangle">
+            <size
+                android:width="860dp"
+                android:height="48dp" />
+            <gradient
+                android:angle="0"
+                android:startColor="#FFa30bbd"
+                android:centerColor="#EFa30bbd"
+                android:endColor="#00a30bbd"
+                />
+            <corners android:radius="8dp" />
+        </shape>
+    </item>
+
+
+</layer-list>
