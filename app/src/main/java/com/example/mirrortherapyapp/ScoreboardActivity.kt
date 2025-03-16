@@ -24,12 +24,6 @@ class ScoreboardActivity : AppCompatActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = adapter
 
-        val btnBackToMenu = findViewById<Button>(R.id.btnBackToMenu)
-        btnBackToMenu.setOnClickListener {
-            // Finishes this activity, returning to the main menu.
-            finish()
-        }
-
         database = AppDatabase.getDatabase(this)
         loadUsers()
     }

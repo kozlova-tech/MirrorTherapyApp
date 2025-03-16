@@ -1,9 +1,16 @@
 <resources>
     <!-- Base application theme. -->
-    <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="AppTheme.NoActionBar" parent="Theme.MaterialComponents.Light.NoActionBar">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/purple_500</item>
         <item name="colorPrimaryDark">@color/purple_700</item>
         <item name="colorAccent">@color/teal_200</item>
+    </style>
+    <style name="CustomToolbarTitle" parent="TextAppearance.MaterialComponents.Headline6">
+        <item name="android:textSize">72sp</item>
+        <item name="colorPrimary">#80a30bbd</item>
+        <item name="android:background">#80a30bbd</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:gravity">center_vertical</item>
     </style>
 </resources>

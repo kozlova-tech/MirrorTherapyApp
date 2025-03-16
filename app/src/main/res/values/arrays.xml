@@ -1,0 +1,40 @@
+<resources>
+    <string-array name="orientation_entries">
+        <item>Full</item>
+        <item>Left Mirrored</item>
+        <item>Right Mirrored</item>
+        <item>Auto</item>
+    </string-array>
+    <string-array name="orientation_values">
+        <item>Full</item>
+        <item>Left Mirrored</item>
+        <item>Right Mirrored</item>
+        <item>Auto</item>
+    </string-array>
+    <string-array name="operation_mode_entries">
+        <item>Plain Mirror</item>
+        <item>Game</item>
+    </string-array>
+    <string-array name="operation_mode_values">
+        <item>Plain Mirror</item>
+        <item>Game</item>
+    </string-array>
+    <string-array name="segmentation_entries">
+        <item>On</item>
+        <item>Off</item>
+    </string-array>
+    <string-array name="segmentation_values">
+        <item>On</item>
+        <item>Off</item>
+    </string-array>
+    <string-array name="difficulty_entries">
+        <item>Easy</item>
+        <item>Medium</item>
+        <item>Hard</item>
+    </string-array>
+    <string-array name="difficulty_values">
+        <item>Easy</item>
+        <item>Medium</item>
+        <item>Hard</item>
+    </string-array>
+</resources>

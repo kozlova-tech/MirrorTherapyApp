@@ -5,7 +5,7 @@ import android.graphics.Canvas
 import android.util.AttributeSet
 import android.widget.ImageView
 
-class TimedSegmentationOverlayView(context: Context, attrs: AttributeSet) : ImageView(context, attrs) {
+class   TimedSegmentationOverlayView(context: Context, attrs: AttributeSet) : ImageView(context, attrs) {
     override fun onDraw(canvas: Canvas) {
         val drawStart = System.currentTimeMillis()
         super.onDraw(canvas)

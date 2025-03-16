@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- Segmentation overlay (displays segmentation mask); this is below the game overlay -->
+    <!-- Segmentation overlay -->
     <ImageView
         android:id="@+id/segmentationOverlayView"
         android:layout_width="match_parent"
@@ -20,7 +20,7 @@
         android:alpha="0.5"
         android:scaleType="fitXY" />
 
-    <!-- Mirror mode selector radio group -->
+    <!-- Mirror mode selector -->
     <RadioGroup
         android:id="@+id/modeSelector"
         android:layout_width="wrap_content"
@@ -52,9 +52,22 @@
         android:layout_height="wrap_content"
         android:layout_gravity="top|left"
         android:orientation="vertical"
-        android:paddingTop="64dp"
+        android:paddingTop="16dp"
         android:paddingLeft="16dp"
-        android:paddingRight="16dp">
+        android:paddingRight="16dp"
+        android:background="#80a30bbd"
+        android:layout_marginTop="16dp"
+        android:layout_marginStart="16dp">
+
+        <!-- Cog icon at the top -->
+        <ImageView
+            android:id="@+id/imgCog"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/cog"
+            android:contentDescription="Settings"
+            android:layout_marginBottom="8dp" />
+
         <TextView
             android:id="@+id/textViewTargetColor"
             android:layout_width="wrap_content"
@@ -64,6 +77,7 @@
             android:textSize="26sp"
             android:textStyle="bold"
             android:layout_marginBottom="12dp" />
+
         <TextView
             android:id="@+id/textViewTimer"
             android:layout_width="wrap_content"
@@ -72,6 +86,7 @@
             android:textColor="@android:color/white"
             android:textSize="24sp"
             android:layout_marginBottom="12dp" />
+
         <TextView
             android:id="@+id/textViewSuccess"
             android:layout_width="wrap_content"
@@ -80,6 +95,7 @@
             android:textColor="@android:color/white"
             android:textSize="24sp"
             android:layout_marginBottom="12dp" />
+
         <TextView
             android:id="@+id/textViewMiss"
             android:layout_width="wrap_content"
@@ -88,17 +104,20 @@
             android:textColor="@android:color/white"
             android:textSize="24sp"
             android:layout_marginBottom="12dp" />
+
         <Button
             android:id="@+id/btnPlay"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Play" />
+
         <Button
             android:id="@+id/btnPause"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Pause" />
-        <!-- New button to toggle segmentation overlay -->
+
+        <!-- Button to toggle segmentation overlay -->
         <Button
             android:id="@+id/btnToggleSegmentation"
             android:layout_width="wrap_content"

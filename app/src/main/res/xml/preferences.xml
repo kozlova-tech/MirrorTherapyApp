@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- Global Settings -->
+    <PreferenceCategory android:title="Global">
+        <ListPreference
+            android:key="orientation"
+            android:title="Orientation"
+            android:entries="@array/orientation_entries"
+            android:entryValues="@array/orientation_values"
+            android:defaultValue="Right Mirrored"
+            app:useSimpleSummaryProvider="true" />
+        <ListPreference
+            android:key="operation_mode"
+            android:title="Operation Mode"
+            android:entries="@array/operation_mode_entries"
+            android:entryValues="@array/operation_mode_values"
+            android:defaultValue="Game"
+            app:useSimpleSummaryProvider="true" />
+        <ListPreference
+            android:key="segmentation_display"
+            android:title="Segmentation Display"
+            android:entries="@array/segmentation_entries"
+            android:entryValues="@array/segmentation_values"
+            android:defaultValue="Off"
+            app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+
+    <!-- Game Settings -->
+    <PreferenceCategory android:title="Game">
+        <ListPreference
+            android:key="difficulty"
+            android:title="Difficulty"
+            android:entries="@array/difficulty_entries"
+            android:entryValues="@array/difficulty_values"
+            android:defaultValue="Medium"
+            app:useSimpleSummaryProvider="true" />
+        <SeekBarPreference
+            android:key="stage_duration"
+            android:title="Stage Duration (seconds)"
+            android:summary="Select stage duration"
+            android:min="10"
+            android:max="120"
+            android:defaultValue="10"
+            app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+
+    <!-- Audio Settings -->
+    <PreferenceCategory android:title="Audio">
+        <SeekBarPreference
+            android:key="music_volume"
+            android:title="Music Volume"
+            android:summary="Adjust music volume"
+            android:min="0"
+            android:max="100"
+            android:defaultValue="50"
+            app:useSimpleSummaryProvider="true" />
+        <SeekBarPreference
+            android:key="sounds_volume"
+            android:title="Sounds Volume"
+            android:summary="Adjust sound effects volume"
+            android:min="0"
+            android:max="100"
+            android:defaultValue="50"
+            app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

@@ -31,10 +31,10 @@ class GameOverlayView(context: Context, attrs: AttributeSet) : View(context, att
 
     // Success image file names (placed in app/src/main/assets)
     private val successImageFiles = listOf(
-        "wow1.png",
         "terrific1.png",
-        "amazing1.png",
-        "great1.png"
+        "wow1.png",
+        "great1.png",
+        "amazing1.png"
     )
 
     // Fixed colors for falling balls
@@ -235,28 +235,41 @@ class GameOverlayView(context: Context, attrs: AttributeSet) : View(context, att
     }
 
     // Show a success image from assets (pop-up image) on the sides.
-    fun showSuccessImageFromAssets(displayDuration: Long = 1000L) {
-        val fileName = successImageFiles.random()
+    fun showSuccessImageFromAssets(index: Int, displayDuration: Long = 1000L) {
+        val fileName = successImageFiles[index]
+        // Load the bitmap from assets.
         val bmp = loadBitmapFromAssets(fileName)
         if (bmp == null) {
             android.util.Log.e("GameOverlayView", "Failed to load image: $fileName")
             return
         }
+        // Retrieve bitmap dimensions.
+        val bmpWidth = bmp.width
+        val bmpHeight = bmp.height
+
         val screenWidth = width
         val screenHeight = height
-        val leftMax = (screenWidth / 3) - bmp.width
+
+        // Calculate allowed horizontal intervals:
+        // Left side: from 0 to (screenWidth/3 - bmpWidth)
+        // Right side: from (2*screenWidth/3) to (screenWidth - bmpWidth)
+        val leftMax = (screenWidth / 3) - bmpWidth
         val rightMin = 2 * (screenWidth / 3)
-        val rightMax = screenWidth - bmp.width
+        val rightMax = screenWidth - bmpWidth
+
         val randomX: Float = if (Random.nextBoolean()) {
             if (leftMax > 0) Random.nextInt(leftMax.toInt()).toFloat() else 0f
         } else {
             if (rightMax > rightMin) Random.nextInt((rightMax - rightMin).toInt()).toFloat() + rightMin else rightMin.toFloat()
         }
-        val maxY = (screenHeight - bmp.height).coerceAtLeast(0)
+        val maxY = (screenHeight - bmpHeight).coerceAtLeast(0)
         val randomY = if (maxY > 0) Random.nextInt(maxY).toFloat() else 0f
+
         val si = SuccessImage(bmp, randomX, randomY, displayDuration)
         successImages.add(si)
     }
+
+
 
     private fun loadBitmapFromAssets(fileName: String): Bitmap? {
         return try {
@@ -275,4 +288,11 @@ class GameOverlayView(context: Context, attrs: AttributeSet) : View(context, att
         val b = (Color.blue(color) * factor).toInt().coerceAtMost(255)
         return Color.rgb(r, g, b)
     }
+
+    fun clearBalls() {
+        // Assuming 'balls' is your mutable list of Ball objects:
+        balls.clear()
+        invalidate() // Refresh the view
+    }
+
 }

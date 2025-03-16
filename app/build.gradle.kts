@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("org.jetbrains.kotlin.kapt") // Required for Room's annotation processing
+    id("kotlin-parcelize")
 }
 
 android {
@@ -66,12 +67,13 @@ dependencies {
     implementation ("com.google.mlkit:segmentation-selfie:16.0.0-beta6")
     implementation ("com.google.android.gms:play-services-mlkit-subject-segmentation:16.0.0-beta1")
     implementation ("com.google.mediapipe:tasks-vision:latest.release")
-
     implementation("androidx.room:room-runtime:2.5.2")
     kapt("androidx.room:room-compiler:2.5.2")
     implementation("androidx.room:room-ktx:2.5.2")
-
-
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
     implementation ("androidx.recyclerview:recyclerview:1.2.1")
+    implementation("androidx.preference:preference-ktx:1.2.0")
+    implementation("com.google.android.material:material:1.9.0")
+
 
 }
