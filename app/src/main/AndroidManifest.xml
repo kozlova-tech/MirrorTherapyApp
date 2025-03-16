@@ -34,6 +34,10 @@
         <activity android:name=".MainMenuActivity"
             android:screenOrientation="landscape"/>
 
+        <!-- Plain Mirror Activity -->
+        <activity android:name=".PlainMirrorActivity"
+            android:screenOrientation="landscape"/>
+
         <!-- Game Activity -->
         <activity android:name=".MainActivity"
             android:screenOrientation="landscape"/>

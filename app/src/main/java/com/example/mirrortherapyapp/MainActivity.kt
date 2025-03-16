@@ -48,6 +48,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var textViewTargetColor: TextView
     private lateinit var textViewTimer: TextView
+    private lateinit var textViewDifficulty: TextView
     private lateinit var textViewSuccess: TextView
     private lateinit var textViewMiss: TextView
     private lateinit var textViewGetReady: TextView
@@ -56,10 +57,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var radioMirrorLeft: RadioButton
     private lateinit var radioMirrorRight: RadioButton
     private lateinit var modeSelector: RadioGroup
-
-    private lateinit var playButton: Button
-    private lateinit var pauseButton: Button
-    private lateinit var toggleSegmentationButton: Button
 
     // New cog icon ImageView (already in layout as imgCog)
     private lateinit var imgCog: ImageView
@@ -105,10 +102,12 @@ class MainActivity : AppCompatActivity() {
     private var stageTargetColor: Int = Color.RED
     private var successCount = 0
     private var missCount = 0
-    private val stageDurationMillis = 10_000L
+    private var stageDurationMillis = 10_000L
     private var stageTimer: CountDownTimer? = null
     private val handler = Handler(Looper.getMainLooper())
     private val segmentationExecutor = Executors.newSingleThreadExecutor()
+
+    private var currentUser: User? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -119,6 +118,7 @@ class MainActivity : AppCompatActivity() {
         segmentationOverlayView = findViewById(R.id.segmentationOverlayView)
         textViewTargetColor = findViewById(R.id.textViewTargetColor)
         textViewTimer = findViewById(R.id.textViewTimer)
+        textViewDifficulty = findViewById(R.id.textViewDifficulty)
         textViewSuccess = findViewById(R.id.textViewSuccess)
         textViewMiss = findViewById(R.id.textViewMiss)
         textViewGetReady = findViewById(R.id.textViewGetReady)
@@ -126,13 +126,34 @@ class MainActivity : AppCompatActivity() {
         radioMirrorLeft = findViewById(R.id.radioMirrorLeft)
         radioMirrorRight = findViewById(R.id.radioMirrorRight)
         modeSelector = findViewById(R.id.modeSelector)
-        playButton = findViewById(R.id.btnPlay)
-        pauseButton = findViewById(R.id.btnPause)
-        toggleSegmentationButton = findViewById(R.id.btnToggleSegmentation)
         imgCog = findViewById(R.id.imgCog)
 
+
+        // Load the current user from the intent extras if available.
+        val userId = intent.getIntExtra("USER_ID", 0)
+        if (userId != 0) {
+            // Since allowMainThreadQueries() is enabled, we can do this on the main thread.
+            currentUser = AppDatabase.getDatabase(this).userDao().getUserById(userId).firstOrNull()
+        }
+
+        // Update stage duration based on the user's setting (stored in seconds).
+        stageDurationMillis = (currentUser?.stageDuration ?: 10) * 1000L
+        textViewTimer.text = "Time left: ${stageDurationMillis / 1000}s"
+
+        // Initialize segmentation display from the user's setting.
+        // The User field segmentationDisplay is expected to be "On" or "Off".
+        segmentationEnabled = currentUser?.segmentationDisplay.equals("On", ignoreCase = true)
+        segmentationOverlayView.visibility = if (segmentationEnabled) View.VISIBLE else View.GONE
+
+        // Retrieve difficulty from the user's settings, defaulting to "Medium" if not set.
+        val difficulty = currentUser?.difficulty ?: "Medium"
+        textViewDifficulty.text = String.format(resources.getString(R.string.difficulty_label), difficulty)
+        // Pass the difficulty setting to GameOverlayView.
+        gameOverlayView.setDifficulty(difficulty)
+
         mediaPlayer = MediaPlayer.create(this, R.raw.game_music)
-        mediaPlayer.setVolume(0.15f, 0.15f)
+        val musicVolumeValue = (currentUser?.musicVolume ?: 50) / 100.0f
+        mediaPlayer.setVolume(musicVolumeValue, musicVolumeValue)
         mediaPlayer.isLooping = true
         mediaPlayer.start()
 
@@ -164,8 +185,28 @@ class MainActivity : AppCompatActivity() {
         )
         // -----------------------------------------------------
 
-        radioFull.isChecked = true
-        mirrorGLSurfaceView.renderer.setMirrorMode(0)
+        // Set the orientation based on the user's stored setting.
+        // Expected values: "Full", "Left Mirrored", "Right Mirrored"
+        val orientation = currentUser?.orientation ?: "Right Mirrored"
+        when (orientation) {
+            "Full" -> {
+                radioFull.isChecked = true
+                mirrorGLSurfaceView.renderer.setMirrorMode(0)
+            }
+            "Left Mirrored" -> {
+                radioMirrorLeft.isChecked = true
+                mirrorGLSurfaceView.renderer.setMirrorMode(1)
+            }
+            "Right Mirrored" -> {
+                radioMirrorRight.isChecked = true
+                mirrorGLSurfaceView.renderer.setMirrorMode(2)
+            }
+            else -> {
+                // Fallback to Full mode.
+                radioFull.isChecked = true
+                mirrorGLSurfaceView.renderer.setMirrorMode(0)
+            }
+        }
         radioFull.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) mirrorGLSurfaceView.renderer.setMirrorMode(0)
         }
@@ -176,17 +217,6 @@ class MainActivity : AppCompatActivity() {
             if (isChecked) mirrorGLSurfaceView.renderer.setMirrorMode(2)
         }
 
-        toggleSegmentationButton.text = "Disable Segmentation"
-        toggleSegmentationButton.setOnClickListener {
-            segmentationEnabled = !segmentationEnabled
-            if (segmentationEnabled) {
-                segmentationOverlayView.visibility = View.VISIBLE
-                toggleSegmentationButton.text = "Disable Segmentation"
-            } else {
-                segmentationOverlayView.visibility = View.GONE
-                toggleSegmentationButton.text = "Enable Segmentation"
-            }
-        }
 
         imgCog.setOnClickListener { view ->
             val popup = PopupMenu(this, view)
@@ -244,9 +274,6 @@ class MainActivity : AppCompatActivity() {
                 playSound(soundMiss)
             }
         }
-
-        playButton.setOnClickListener { mediaPlayer.start() }
-        pauseButton.setOnClickListener { mediaPlayer.pause() }
 
         gameOverlayView.isSpawningBalls = false
 
@@ -332,9 +359,19 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startPreGameCountdown() {
+        // Clear any existing balls.
         gameOverlayView.clearBalls()
         gameOverlayView.isSpawningBalls = false
-        stageTargetColor = fixedColors.random()
+
+        // Determine the target color for the stage.
+        stageTargetColor = fixedColors.random() // or however you choose the target.
+        // Update the UI accordingly.
+        setColoredTargetText(textViewTargetColor, stageTargetColor)
+
+        // Inform GameOverlayView about the target color (and reset counters).
+        gameOverlayView.setTargetColor(stageTargetColor)
+
+        // Continue with the countdown and stage start...
         showGetReadySequence(stageTargetColor) {
             gameOverlayView.isSpawningBalls = true
             startStage()
@@ -361,7 +398,7 @@ class MainActivity : AppCompatActivity() {
     private fun startStage() {
         stageTimer?.cancel()
         setColoredTargetText(textViewTargetColor, stageTargetColor)
-        textViewTimer.text = "Time left: 10s"
+        textViewTimer.text = "Time left: ${stageDurationMillis / 1000}s"
         stageTimer = object : CountDownTimer(stageDurationMillis, 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 val secondsLeft = millisUntilFinished / 1000
@@ -370,9 +407,19 @@ class MainActivity : AppCompatActivity() {
             override fun onFinish() {
                 // Set side text to indicate stage over.
                 textViewTargetColor.text = "Stage over!"
-
                 gameOverlayView.clearBalls()
                 gameOverlayView.isSpawningBalls = false
+
+                // If the current success count is higher than the stored record, update it.
+                val currentRecord = currentUser?.record ?: 0
+                if (successCount > currentRecord) {
+                    currentUser?.let { user ->
+                        val updatedUser = user.copy(record = successCount)
+                        AppDatabase.getDatabase(this@MainActivity).userDao().updateUser(updatedUser)
+                        currentUser = updatedUser
+                    }
+                }
+
                 // Show "Stage over!" in the center with fade-in/out animation.
                 showStageOverMessage {
 
@@ -387,7 +434,9 @@ class MainActivity : AppCompatActivity() {
 
     // --- Sound helper functions using SoundPool ---
     private fun playSound(soundId: Int) {
-        soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
+        // Retrieve the sounds volume (default to 50 if not set) and convert it to a 0.0–1.0 scale.
+        val soundsVolumeValue = (currentUser?.soundsVolume ?: 50) / 100.0f
+        soundPool.play(soundId, soundsVolumeValue, soundsVolumeValue, 1, 0, 1f)
     }
 
     private fun playRandomSuccessSound() {

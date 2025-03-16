@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">DoLimbo</string>
+    <string name="difficulty_label">Difficulty: %s</string>
+
 </resources>

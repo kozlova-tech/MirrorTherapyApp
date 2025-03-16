@@ -6,6 +6,7 @@ import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import android.app.AlertDialog
+import android.util.Log
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
@@ -45,10 +46,38 @@ class MainMenuActivity : AppCompatActivity() {
         loadUsersIntoSpinner() // Load the current list of users into the spinner.
 
         btnNewGame.setOnClickListener {
-            // Start your game activity
-            val intent = Intent(this, MainActivity::class.java)
-            startActivity(intent)
+            // Check for a valid selection.
+            val pos = spinnerUser.selectedItemPosition
+            if (pos == 0) {
+                Toast.makeText(this, "Please select a valid user", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            // Reload the user list from the database.
+            CoroutineScope(Dispatchers.Main).launch {
+                val updatedUsers = withContext(Dispatchers.IO) {
+                    AppDatabase.getDatabase(this@MainMenuActivity)
+                        .userDao()
+                        .getAllUsersSortedFlow()
+                        .firstOrNull() ?: emptyList()
+                }
+                // Update the local userList.
+                userList = updatedUsers
+
+                // Get the fresh selected user from the updated list.
+                val selectedUser = userList[pos - 1]
+
+                // Decide which activity to launch based on operation mode.
+                val intent = if (selectedUser.operationMode.equals("Plain Mirror", ignoreCase = true)) {
+                    Intent(this@MainMenuActivity, PlainMirrorActivity::class.java)
+                } else {
+                    Intent(this@MainMenuActivity, MainActivity::class.java)
+                }
+                intent.putExtra("USER_ID", selectedUser.id)
+                startActivity(intent)
+            }
         }
+
 
         btnSettings.setOnClickListener {
             // Get the selected spinner position.

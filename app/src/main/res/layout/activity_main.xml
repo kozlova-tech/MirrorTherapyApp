@@ -88,6 +88,15 @@
             android:layout_marginBottom="12dp" />
 
         <TextView
+            android:id="@+id/textViewDifficulty"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Difficulty: Medium"
+            android:textColor="@android:color/white"
+            android:textSize="24sp"
+            android:layout_marginBottom="12dp" />
+
+        <TextView
             android:id="@+id/textViewSuccess"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -105,25 +114,6 @@
             android:textSize="24sp"
             android:layout_marginBottom="12dp" />
 
-        <Button
-            android:id="@+id/btnPlay"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Play" />
-
-        <Button
-            android:id="@+id/btnPause"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Pause" />
-
-        <!-- Button to toggle segmentation overlay -->
-        <Button
-            android:id="@+id/btnToggleSegmentation"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Disable Segmentation"
-            android:layout_marginTop="12dp" />
     </LinearLayout>
 
     <!-- Game overlay for falling balls and pop animations -->

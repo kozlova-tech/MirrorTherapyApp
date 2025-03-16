@@ -79,6 +79,9 @@ class SettingsFragment : PreferenceFragmentCompat() {
         )
         // Now load the preferences from XML.
         setPreferencesFromResource(R.xml.preferences, rootKey)
+
+
+
     }
 
 }

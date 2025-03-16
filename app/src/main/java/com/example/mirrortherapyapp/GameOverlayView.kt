@@ -62,19 +62,24 @@ class GameOverlayView(context: Context, attrs: AttributeSet) : View(context, att
     private val paint = Paint().apply { isAntiAlias = true }
 
     // Configuration for spawning balls
-    private val spawnInterval = 700L
+    private var spawnInterval = 700L
     private var lastSpawnTime = 0L
 
     // Ball properties
     private val ballRadius = 40f
-    private val minVelocityY = 5f
-    private val maxVelocityY = 12f
+    private var minVelocityY = 5f
+    private var maxVelocityY = 12f
 
     // List for success images to be drawn (pop-up images)
     private val successImages = mutableListOf<SuccessImage>()
 
     // Variable to store the latest segmentation mask (from the analyzer)
     private var segmentationMask: Bitmap? = null
+
+    // New fields to ensure target color frequency.
+    private var totalBallsSpawned = 0
+    private var targetBallsSpawned = 0
+    private var stageTargetColor: Int? = null
 
     // Update loop runnable (posted every ~16ms)
     private val updateRunnable = object : Runnable {
@@ -101,18 +106,45 @@ class GameOverlayView(context: Context, attrs: AttributeSet) : View(context, att
         segmentationMask = mask
     }
 
+    // Call this at the start of each stage to set/reset the target color.
+    fun setTargetColor(color: Int) {
+        stageTargetColor = color
+        totalBallsSpawned = 0
+        targetBallsSpawned = 0
+    }
+
     private fun spawnBall() {
+        totalBallsSpawned++
+        // Choose a random color from fixedColors.
+        var chosenColor = fixedColors.random()
+
+        stageTargetColor?.let { targetColor ->
+            // If the random choice already is target color, count it.
+            if (chosenColor == targetColor) {
+                targetBallsSpawned++
+            }
+            // Calculate the required number of target-colored balls (round up).
+            val requiredTargetCount = Math.ceil(totalBallsSpawned / 3.0).toInt()
+            if (targetBallsSpawned < requiredTargetCount) {
+                // Force this ball to be target color if we're behind.
+                if (chosenColor != targetColor) {
+                    chosenColor = targetColor
+                    targetBallsSpawned++ // Count this forced ball.
+                }
+            }
+        }
+
         val xPosition = width / 2f
+        // Determine the falling velocity using the (possibly modified) velocity range.
         val velocityY = Random.nextFloat() * (maxVelocityY - minVelocityY) + minVelocityY
-        val color = fixedColors.random()
         val newBall = Ball(
             x = xPosition,
             y = -ballRadius,
             velocityY = velocityY,
             radius = ballRadius,
-            color = color
+            color = chosenColor
         )
-        // Preallocate a RadialGradient for the ball.
+        // Preallocate a RadialGradient for a smoother look.
         newBall.shader = RadialGradient(
             newBall.radius,
             newBall.radius,
@@ -293,6 +325,30 @@ class GameOverlayView(context: Context, attrs: AttributeSet) : View(context, att
         // Assuming 'balls' is your mutable list of Ball objects:
         balls.clear()
         invalidate() // Refresh the view
+    }
+
+    // Setter for difficulty that affects the velocity range.
+    // Expected difficulty values: "Easy", "Medium", "Hard".
+    fun setDifficulty(difficulty: String) {
+        when (difficulty.toLowerCase()) {
+            "easy" -> {
+                // Slower falling balls for easy difficulty.
+                minVelocityY = 2f
+                maxVelocityY = 4f
+                spawnInterval = 1200L // Longer interval = fewer balls.
+            }
+            "hard" -> {
+                // Faster falling balls for hard difficulty.
+                minVelocityY = 20f
+                maxVelocityY = 30f
+                spawnInterval = 400L // Shorter interval = more balls.
+            }
+            else -> { // "medium" or any other value defaults to medium behavior.
+                minVelocityY = 5f
+                maxVelocityY = 12f
+                spawnInterval = 700L
+            }
+        }
     }
 
 }

@@ -36,14 +36,13 @@
             android:entryValues="@array/difficulty_values"
             android:defaultValue="Medium"
             app:useSimpleSummaryProvider="true" />
-        <SeekBarPreference
+        <com.example.mirrortherapyapp.CustomSeekBarPreference
             android:key="stage_duration"
-            android:title="Stage Duration (seconds)"
-            android:summary="Select stage duration"
+            android:title="Stage Duration"
+            android:summary="0 seconds"
             android:min="10"
             android:max="120"
-            android:defaultValue="10"
-            app:useSimpleSummaryProvider="true" />
+            android:defaultValue="20" />
     </PreferenceCategory>
 
     <!-- Audio Settings -->
