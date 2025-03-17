@@ -247,7 +247,9 @@ class MainActivity : AppCompatActivity() {
                         true
                     }
                     R.id.menu_settings -> {
-                        android.widget.Toast.makeText(this, "Settings not implemented", android.widget.Toast.LENGTH_SHORT).show()
+                        currentUser?.let { user ->
+                            SettingsDialogFragment.newInstance(user).show(supportFragmentManager, "settingsDialog")
+                        }
                         true
                     }
                     R.id.menu_quit -> {
