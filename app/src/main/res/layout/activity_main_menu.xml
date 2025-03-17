@@ -87,7 +87,7 @@
                 android:id="@+id/btnQuit"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Quit"
+                android:text="Exit"
                 android:textAllCaps="false"
                 android:textAlignment="viewStart"
                 android:textColor="#FFFFFF"

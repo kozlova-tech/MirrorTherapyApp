@@ -3,6 +3,7 @@ package com.example.mirrortherapyapp
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.graphics.Color
 import android.media.AudioAttributes
 import android.media.MediaPlayer
@@ -109,6 +110,16 @@ class MainActivity : AppCompatActivity() {
 
     private var currentUser: User? = null
 
+    // Handler for scheduling auto-orientation checks.
+    private val autoOrientationHandler = Handler(Looper.getMainLooper())
+    // Variable to store the latest segmentation mask.
+    @Volatile
+    private var latestSegmentationMask: Bitmap? = null
+    // Current mirror mode (0: full, 1: mirror left, 2: mirror right).
+    private var currentMirrorMode: Int = 2 // Default to Right Mirrored.
+    // A threshold below which we consider there are no lit foreground pixels.
+    private val pixelCountThreshold = 300 // adjust as needed
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -200,6 +211,14 @@ class MainActivity : AppCompatActivity() {
             "Right Mirrored" -> {
                 radioMirrorRight.isChecked = true
                 mirrorGLSurfaceView.renderer.setMirrorMode(2)
+            }
+            "Auto" -> {
+                radioFull.visibility = View.GONE
+                radioMirrorLeft.visibility = View.GONE
+                radioMirrorRight.visibility = View.GONE
+                modeSelector.visibility = View.GONE
+                mirrorGLSurfaceView.renderer.setMirrorMode(0)
+                startAutoOrientationCheck()
             }
             else -> {
                 // Fallback to Full mode.
@@ -294,6 +313,7 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
         mediaPlayer.release()
         soundPool.release()
+        autoOrientationHandler.removeCallbacksAndMessages(null)
     }
 
     private fun allPermissionsGranted(): Boolean {
@@ -333,6 +353,7 @@ class MainActivity : AppCompatActivity() {
                             segmentationOverlayView.setImageBitmap(maskBitmap)
                         }
                         gameOverlayView.updateSegmentationMask(maskBitmap)
+                        latestSegmentationMask = maskBitmap
                     }
                 }
             )
@@ -537,7 +558,65 @@ class MainActivity : AppCompatActivity() {
         }.start()
     }
 
+    // Periodic auto-orientation check (every 1 second).
+    private fun startAutoOrientationCheck() {
+        autoOrientationHandler.post(object : Runnable {
+            override fun run() {
+                // Only run if the user's orientation is still set to Auto.
+                if (currentUser?.orientation.equals("Auto", ignoreCase = true)) {
+                    latestSegmentationMask?.let { mask ->
+                        // Analyze the mask.
+                        val (leftCount, rightCount) = analyzeMask(mask)
+                        val totalLit = leftCount + rightCount
+                        if (totalLit >= pixelCountThreshold) {
+                            // Decide based on which half has more lit pixels.
+                            if (leftCount > rightCount && currentMirrorMode != 1) {
+                                mirrorGLSurfaceView.renderer.setMirrorMode(1)
+                                currentMirrorMode = 1
+                            } else if (rightCount > leftCount && currentMirrorMode != 2) {
+                                mirrorGLSurfaceView.renderer.setMirrorMode(2)
+                                currentMirrorMode = 2
+                            }
+                        }
+                    }
+                }
+                // Schedule the next check after 1000ms.
+                autoOrientationHandler.postDelayed(this, 1000)
+            }
+        })
+    }
 
+    // Helper function to analyze the segmentation mask.
+    // Returns a Pair where first = lit pixel count in left half, second = lit pixel count in right half.
+    private fun analyzeMask(mask: Bitmap): Pair<Int, Int> {
+        val width = mask.width
+        val height = mask.height
+        val leftHalfWidth = width / 2
+
+        var leftCount = 0
+        var rightCount = 0
+
+        // Create an array to hold all pixel values.
+        val pixels = IntArray(width * height)
+        mask.getPixels(pixels, 0, width, 0, 0, width, height)
+
+        for (y in 0 until height) {
+            for (x in 0 until width) {
+                val pixel = pixels[y * width + x]
+                // We consider a pixel lit if its alpha is above 128.
+                val alpha = (pixel shr 24) and 0xff
+                if (alpha > 128) {
+                    if (x < leftHalfWidth) {
+                        leftCount++
+                    } else {
+                        rightCount++
+                    }
+                }
+            }
+        }
+        return Pair(leftCount, rightCount)
+    }
 
 
 }
+
