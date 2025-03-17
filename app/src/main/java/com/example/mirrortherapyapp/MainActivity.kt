@@ -197,20 +197,27 @@ class MainActivity : AppCompatActivity() {
         )
         // -----------------------------------------------------
 
+        // After currentUser is loaded:
+        val targetOffsetValue = currentUser?.targetOffset ?: 0
+        gameOverlayView.setTargetOffset(targetOffsetValue)
+
         // Set the orientation based on the user's stored setting.
         // Expected values: "Full", "Left Mirrored", "Right Mirrored"
         val orientation = currentUser?.orientation ?: "Right Mirrored"
         when (orientation) {
             "Full" -> {
                 radioFull.isChecked = true
+                gameOverlayView.setCurrentMirrorMode(0)
                 mirrorGLSurfaceView.renderer.setMirrorMode(0)
             }
             "Left Mirrored" -> {
                 radioMirrorLeft.isChecked = true
+                gameOverlayView.setCurrentMirrorMode(1)
                 mirrorGLSurfaceView.renderer.setMirrorMode(1)
             }
             "Right Mirrored" -> {
                 radioMirrorRight.isChecked = true
+                gameOverlayView.setCurrentMirrorMode(2)
                 mirrorGLSurfaceView.renderer.setMirrorMode(2)
             }
             "Auto" -> {
@@ -218,6 +225,7 @@ class MainActivity : AppCompatActivity() {
                 radioMirrorLeft.visibility = View.GONE
                 radioMirrorRight.visibility = View.GONE
                 modeSelector.visibility = View.GONE
+                gameOverlayView.setCurrentMirrorMode(0)
                 mirrorGLSurfaceView.renderer.setMirrorMode(0)
                 startAutoOrientationCheck()
             }
@@ -228,13 +236,16 @@ class MainActivity : AppCompatActivity() {
             }
         }
         radioFull.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) mirrorGLSurfaceView.renderer.setMirrorMode(0)
+            if (isChecked) {mirrorGLSurfaceView.renderer.setMirrorMode(0)
+            gameOverlayView.setCurrentMirrorMode(0)}
         }
         radioMirrorLeft.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) mirrorGLSurfaceView.renderer.setMirrorMode(1)
+            if (isChecked) {mirrorGLSurfaceView.renderer.setMirrorMode(1)
+            gameOverlayView.setCurrentMirrorMode(1)}
         }
         radioMirrorRight.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) mirrorGLSurfaceView.renderer.setMirrorMode(2)
+            if (isChecked) {mirrorGLSurfaceView.renderer.setMirrorMode(2)
+                gameOverlayView.setCurrentMirrorMode(2)}
         }
 
 
@@ -687,6 +698,10 @@ class MainActivity : AppCompatActivity() {
         val musicVolumeValue = (user.musicVolume) / 100.0f
         mediaPlayer.setVolume(musicVolumeValue, musicVolumeValue)
 
+        // After currentUser is loaded:
+        val targetOffsetValue = user.targetOffset
+        gameOverlayView.setTargetOffset(targetOffsetValue)
+
         // --- Update Orientation ---
         when (user.orientation) {
             "Full" -> {
@@ -696,6 +711,7 @@ class MainActivity : AppCompatActivity() {
                 radioMirrorRight.visibility = View.VISIBLE
                 modeSelector.visibility = View.VISIBLE
                 mirrorGLSurfaceView.renderer.setMirrorMode(0)
+                gameOverlayView.setCurrentMirrorMode(0)
                 // Stop auto orientation if running
                 autoOrientationHandler.removeCallbacksAndMessages(null)
             }
@@ -706,6 +722,7 @@ class MainActivity : AppCompatActivity() {
                 radioMirrorRight.visibility = View.VISIBLE
                 modeSelector.visibility = View.VISIBLE
                 mirrorGLSurfaceView.renderer.setMirrorMode(1)
+                gameOverlayView.setCurrentMirrorMode(1)
                 autoOrientationHandler.removeCallbacksAndMessages(null)
             }
             "Right Mirrored" -> {
@@ -715,6 +732,7 @@ class MainActivity : AppCompatActivity() {
                 radioMirrorRight.visibility = View.VISIBLE
                 modeSelector.visibility = View.VISIBLE
                 mirrorGLSurfaceView.renderer.setMirrorMode(2)
+                gameOverlayView.setCurrentMirrorMode(2)
                 autoOrientationHandler.removeCallbacksAndMessages(null)
             }
             "Auto" -> {
@@ -725,6 +743,7 @@ class MainActivity : AppCompatActivity() {
                 modeSelector.visibility = View.GONE
                 // Optionally, reset the mirror mode to a default value until the auto check updates it.
                 mirrorGLSurfaceView.renderer.setMirrorMode(0)
+                gameOverlayView.setCurrentMirrorMode(0)
                 // Start or restart the auto orientation check.
                 startAutoOrientationCheck()
             }

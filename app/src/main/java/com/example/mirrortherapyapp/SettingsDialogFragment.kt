@@ -25,6 +25,8 @@ class SettingsDialogFragment : DialogFragment() {
                 putInt("stage_duration", user.stageDuration)
                 putInt("music_volume", user.musicVolume)
                 putInt("sounds_volume", user.soundsVolume)
+                putInt("target_offset", user.targetOffset)
+
                 // Pass true to disable Operation Mode in the dialog.
                 putBoolean(ARG_DISABLE_OPERATION_MODE, true)
             }
@@ -62,9 +64,10 @@ class SettingsDialogFragment : DialogFragment() {
             operationMode = arguments?.getString("operation_mode") ?: "Game",
             segmentationDisplay = arguments?.getString("segmentation_display") ?: "Off",
             difficulty = arguments?.getString("difficulty") ?: "Medium",
-            stageDuration = arguments?.getInt("stage_duration") ?: 10,
+            stageDuration = arguments?.getInt("stage_duration") ?: 20,
             musicVolume = arguments?.getInt("music_volume") ?: 50,
-            soundsVolume = arguments?.getInt("sounds_volume") ?: 50
+            soundsVolume = arguments?.getInt("sounds_volume") ?: 50,
+            targetOffset = arguments?.getInt("target_offset") ?: 0
         )
     }
 

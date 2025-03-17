@@ -26,6 +26,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
         private const val ARG_STAGE_DURATION = "stage_duration"
         private const val ARG_MUSIC_VOLUME = "music_volume"
         private const val ARG_SOUNDS_VOLUME = "sounds_volume"
+        private const val ARG_TARGET_OFFSET= "target_offset"
 
 
         fun newInstance(user: User, disableOperationMode: Boolean = false): SettingsFragment {
@@ -41,6 +42,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 putInt("stage_duration", user.stageDuration)
                 putInt("music_volume", user.musicVolume)
                 putInt("sounds_volume", user.soundsVolume)
+                putInt("target_offset", user.targetOffset)
                 putBoolean(ARG_DISABLE_OPERATION_MODE, disableOperationMode)
             }
             fragment.arguments = args
@@ -62,6 +64,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
         val stageDuration = arguments?.getInt(ARG_STAGE_DURATION) ?: 10
         val musicVolume = arguments?.getInt(ARG_MUSIC_VOLUME) ?: 50
         val soundsVolume = arguments?.getInt(ARG_SOUNDS_VOLUME) ?: 50
+        val targetOffset = arguments?.getInt(ARG_TARGET_OFFSET) ?: 0
         val currentUser = User(
             id = userId,
             name = name,
@@ -72,7 +75,8 @@ class SettingsFragment : PreferenceFragmentCompat() {
             difficulty = difficulty,
             stageDuration = stageDuration,
             musicVolume = musicVolume,
-            soundsVolume = soundsVolume
+            soundsVolume = soundsVolume,
+            targetOffset = targetOffset
         )
 
         // Set the custom PreferenceDataStore using the current user.

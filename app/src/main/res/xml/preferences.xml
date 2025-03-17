@@ -43,6 +43,14 @@
             android:min="10"
             android:max="120"
             android:defaultValue="20" />
+        <com.example.mirrortherapyapp.CustomSeekBarPreference
+            android:key="target_offset"
+            android:title="Target Offset"
+            android:summary="0 pixels"
+            android:min="0"
+            android:max="480"
+            android:defaultValue="0"
+            android:stepSize="96" />
     </PreferenceCategory>
 
     <!-- Audio Settings -->

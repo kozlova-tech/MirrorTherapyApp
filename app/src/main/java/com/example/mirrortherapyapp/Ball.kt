@@ -12,5 +12,7 @@ data class Ball(
     var scale: Float = 1.0f,       // For pop animation
     var isHit: Boolean = false,    // Marks if the ball has been hit
     var shader: RadialGradient? = null,  // Preallocated shader (RadialGradient)
-    var shaderMatrix: Matrix = Matrix()    // Preallocated Matrix for updating shader position
+    var shaderMatrix: Matrix = Matrix(),    // Preallocated Matrix for updating shader position
+    var isMirror: Boolean = false,
+    var pairId: Int? = null
 )

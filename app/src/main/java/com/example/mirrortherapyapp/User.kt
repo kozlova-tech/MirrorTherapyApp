@@ -25,9 +25,12 @@ data class User(
     @ColumnInfo(name = "difficulty")
     val difficulty: String = "Medium",
     @ColumnInfo(name = "stage_duration")
-    val stageDuration: Int = 10,
+    val stageDuration: Int = 20,
     @ColumnInfo(name = "music_volume")
     val musicVolume: Int = 50,
     @ColumnInfo(name = "sounds_volume")
-    val soundsVolume: Int = 50
+    val soundsVolume: Int = 50,
+    @ColumnInfo(name = "target_offset")
+    val targetOffset: Int = 0
+
 ) : Parcelable

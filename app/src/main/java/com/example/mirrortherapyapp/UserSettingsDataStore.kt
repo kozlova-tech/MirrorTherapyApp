@@ -56,6 +56,7 @@ class UserSettingsDataStore(
             "stage_duration" -> user.stageDuration
             "music_volume" -> user.musicVolume
             "sounds_volume" -> user.soundsVolume
+            "target_offset" -> user.targetOffset
             else -> defValue
         }
     }
@@ -67,6 +68,7 @@ class UserSettingsDataStore(
             "stage_duration" -> user.copy(stageDuration = value)
             "music_volume" -> user.copy(musicVolume = value)
             "sounds_volume" -> user.copy(soundsVolume = value)
+            "target_offset" -> user.copy(targetOffset = value)
             else -> user
         }
         saveUser()

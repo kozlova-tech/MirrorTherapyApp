@@ -81,6 +81,17 @@ class GameOverlayView(context: Context, attrs: AttributeSet) : View(context, att
     private var targetBallsSpawned = 0
     private var stageTargetColor: Int? = null
 
+    private var targetOffset: Int = 0
+    private var currentMirrorMode: Int = 0  // 0: full, 1: left, 2: right
+
+    fun setTargetOffset(offset: Int) {
+        this.targetOffset = offset
+    }
+
+    fun setCurrentMirrorMode(mode: Int) {
+        this.currentMirrorMode = mode
+    }
+
     // Update loop runnable (posted every ~16ms)
     private val updateRunnable = object : Runnable {
         override fun run() {
@@ -113,48 +124,74 @@ class GameOverlayView(context: Context, attrs: AttributeSet) : View(context, att
         targetBallsSpawned = 0
     }
 
+    private var ballPairCounter = 0
+
     private fun spawnBall() {
         totalBallsSpawned++
         // Choose a random color from fixedColors.
-        var chosenColor = fixedColors.random()
+        val chosenColor = fixedColors.random()
 
-        stageTargetColor?.let { targetColor ->
-            // If the random choice already is target color, count it.
-            if (chosenColor == targetColor) {
-                targetBallsSpawned++
-            }
-            // Calculate the required number of target-colored balls (round up).
-            val requiredTargetCount = Math.ceil(totalBallsSpawned / 3.0).toInt()
-            if (targetBallsSpawned < requiredTargetCount) {
-                // Force this ball to be target color if we're behind.
-                if (chosenColor != targetColor) {
-                    chosenColor = targetColor
-                    targetBallsSpawned++ // Count this forced ball.
-                }
-            }
+        val center = width / 2f
+        // Determine the interactive ball's x position:
+        // If mirror mode is Full (0), no offset; if Left (1), subtract offset; if Right (2), add offset.
+        val interactiveX = when (currentMirrorMode) {
+            1 -> center - targetOffset
+            2 -> center + targetOffset
+            else -> center
         }
 
-        val xPosition = width / 2f
-        // Determine the falling velocity using the (possibly modified) velocity range.
+        // Determine velocity.
         val velocityY = Random.nextFloat() * (maxVelocityY - minVelocityY) + minVelocityY
-        val newBall = Ball(
-            x = xPosition,
+        // Create a unique pairId if offset is used.
+        val pairId = if (targetOffset > 0 && currentMirrorMode != 0) ballPairCounter++ else null
+
+        // Create the interactive ball.
+        val interactiveBall = Ball(
+            x = interactiveX,
             y = -ballRadius,
             velocityY = velocityY,
             radius = ballRadius,
-            color = chosenColor
+            color = chosenColor,
+            isMirror = false,
+            pairId = pairId
         )
-        // Preallocate a RadialGradient for a smoother look.
-        newBall.shader = RadialGradient(
-            newBall.radius,
-            newBall.radius,
-            newBall.radius,
-            intArrayOf(newBall.color, darkenColor(newBall.color)),
+        interactiveBall.shader = RadialGradient(
+            interactiveBall.radius,
+            interactiveBall.radius,
+            interactiveBall.radius,
+            intArrayOf(interactiveBall.color, darkenColor(interactiveBall.color)),
             floatArrayOf(0.5f, 1.0f),
-            Shader.TileMode.CLAMP
+            android.graphics.Shader.TileMode.CLAMP
         )
-        balls.add(newBall)
+        balls.add(interactiveBall)
+
+        // Create a mirror copy for every ball if an offset is applied and mode is not Full.
+        if (targetOffset > 0 && currentMirrorMode != 0) {
+            // Mirror the x position: mirrorX = 2 * center - interactiveX.
+            val mirrorX = 2 * center - interactiveX
+            val mirrorBall = Ball(
+                x = mirrorX,
+                y = -ballRadius,
+                velocityY = velocityY,
+                radius = ballRadius,
+                color = chosenColor,
+                isMirror = true,
+                pairId = pairId
+            )
+            mirrorBall.shader = RadialGradient(
+                mirrorBall.radius,
+                mirrorBall.radius,
+                mirrorBall.radius,
+                intArrayOf(mirrorBall.color, darkenColor(mirrorBall.color)),
+                floatArrayOf(0.5f, 1.0f),
+                android.graphics.Shader.TileMode.CLAMP
+            )
+            balls.add(mirrorBall)
+        }
     }
+
+
+
 
     private fun updateBalls() {
         for (ball in balls) {
@@ -235,26 +272,54 @@ class GameOverlayView(context: Context, attrs: AttributeSet) : View(context, att
             val touchX = event.x
             val touchY = event.y
             val tappedBalls = balls.filter { ball ->
+                if (ball.isMirror) return@filter false
                 val dx = ball.x - touchX
                 val dy = ball.y - touchY
-                dx * dx + dy * dy <= (ball.radius * ball.scale) * (ball.radius * ball.scale)
+                dx * dx + dy * dy <= (ball.radius * ball.scale).let { it * it }
             }
+            val processedPairIds = mutableSetOf<Int>()
             if (tappedBalls.isNotEmpty()) {
                 tappedBalls.forEach { ball ->
                     if (!ball.isHit) {
                         ball.isHit = true
-                        ValueAnimator.ofFloat(1.0f, 1.5f, 0f).apply {
-                            duration = 300
-                            addUpdateListener { animator ->
-                                ball.scale = animator.animatedValue as Float
-                                invalidate()
-                            }
-                            addListener(object : AnimatorListenerAdapter() {
-                                override fun onAnimationEnd(animation: Animator) {
-                                    balls.remove(ball)
+                        // If the ball has a pairId, animate all balls sharing that pair
+                        ball.pairId?.let { id ->
+                            if (!processedPairIds.contains(id)) {
+                                processedPairIds.add(id)
+                                val group = balls.filter { it.pairId == id }
+                                ValueAnimator.ofFloat(1.0f, 1.5f, 0f).apply {
+                                    duration = 300
+                                    startDelay = 0
+                                    addUpdateListener { animator ->
+                                        val newScale = animator.animatedValue as Float
+                                        group.forEach { it.scale = newScale }
+                                        // Force a synchronous redraw on the next frame.
+                                        postInvalidateOnAnimation()
+                                    }
+                                    addListener(object : AnimatorListenerAdapter() {
+                                        override fun onAnimationEnd(animation: Animator) {
+                                            balls.removeAll { it.pairId == id }
+                                        }
+                                    })
+                                    start()
                                 }
-                            })
-                            start()
+                            }
+                        } ?: run {
+                            // Animate individual ball (if no mirror pair exists).
+                            ValueAnimator.ofFloat(1.0f, 1.5f, 0f).apply {
+                                duration = 300
+                                startDelay = 0
+                                addUpdateListener { animator ->
+                                    ball.scale = animator.animatedValue as Float
+                                    postInvalidateOnAnimation()
+                                }
+                                addListener(object : AnimatorListenerAdapter() {
+                                    override fun onAnimationEnd(animation: Animator) {
+                                        balls.remove(ball)
+                                    }
+                                })
+                                start()
+                            }
                         }
                         onBallTapListener?.invoke(ball.color)
                     }
@@ -265,6 +330,11 @@ class GameOverlayView(context: Context, attrs: AttributeSet) : View(context, att
         }
         return super.onTouchEvent(event)
     }
+
+
+
+
+
 
     // Show a success image from assets (pop-up image) on the sides.
     fun showSuccessImageFromAssets(index: Int, displayDuration: Long = 1000L) {
