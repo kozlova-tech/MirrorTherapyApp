@@ -104,6 +104,7 @@ class MainActivity : AppCompatActivity() {
     private var successCount = 0
     private var missCount = 0
     private var stageDurationMillis = 10_000L
+    private var remainingTimeMillis: Long = 0L
     private var stageTimer: CountDownTimer? = null
     private val handler = Handler(Looper.getMainLooper())
     private val segmentationExecutor = Executors.newSingleThreadExecutor()
@@ -275,6 +276,17 @@ class MainActivity : AppCompatActivity() {
             )
         }
 
+        supportFragmentManager.setFragmentResultListener("settings_changed", this) { key, bundle ->
+            // Re-read the updated user from the database and update the UI.
+            val userId = currentUser?.id ?: return@setFragmentResultListener
+            val updatedUser = AppDatabase.getDatabase(this).userDao().getUserById(userId).firstOrNull()
+            updatedUser?.let { user ->
+                currentUser = user
+                updateUIFromSettings(user)
+            }
+        }
+
+
         gameOverlayView.setOnBallTapListener { tappedColor ->
             if (tappedColor == stageTargetColor) {
                 successCount++
@@ -422,8 +434,11 @@ class MainActivity : AppCompatActivity() {
         stageTimer?.cancel()
         setColoredTargetText(textViewTargetColor, stageTargetColor)
         textViewTimer.text = "Time left: ${stageDurationMillis / 1000}s"
+        // Initialize remaining time with the full stage duration.
+        remainingTimeMillis = stageDurationMillis
         stageTimer = object : CountDownTimer(stageDurationMillis, 1000) {
             override fun onTick(millisUntilFinished: Long) {
+                remainingTimeMillis = millisUntilFinished  // Update remaining time.
                 val secondsLeft = millisUntilFinished / 1000
                 textViewTimer.text = "Time left: ${secondsLeft}s"
             }
@@ -618,6 +633,104 @@ class MainActivity : AppCompatActivity() {
         }
         return Pair(leftCount, rightCount)
     }
+
+    private fun updateUIFromSettings(user: User) {
+        // Update stage duration
+        val newStageDurationMillis  = (user.stageDuration) * 1000L
+
+        // If a stage is running and the remaining time is greater than the new stage duration,
+        // cancel the timer and start a new one with the new duration.
+        if (stageTimer != null && remainingTimeMillis > newStageDurationMillis) {
+            stageTimer?.cancel()
+            stageDurationMillis = newStageDurationMillis
+            remainingTimeMillis = newStageDurationMillis
+            stageTimer = object : CountDownTimer(newStageDurationMillis, 1000) {
+                override fun onTick(millisUntilFinished: Long) {
+                    remainingTimeMillis = millisUntilFinished
+                    textViewTimer.text = "Time left: ${millisUntilFinished / 1000}s"
+                }
+                override fun onFinish() {
+                    textViewTargetColor.text = "Stage over!"
+                    gameOverlayView.clearBalls()
+                    gameOverlayView.isSpawningBalls = false
+
+                    // Update record if needed.
+                    val currentRecord = currentUser?.record ?: 0
+                    if (successCount > currentRecord) {
+                        currentUser?.let { user ->
+                            val updatedUser = user.copy(record = successCount)
+                            AppDatabase.getDatabase(this@MainActivity).userDao().updateUser(updatedUser)
+                            currentUser = updatedUser
+                        }
+                    }
+                    showStageOverMessage {
+                        handler.postDelayed({
+                            startPreGameCountdown()
+                        }, 0)
+                    }
+                }
+            }.start()
+        } else {
+            // If no stage is running or the remaining time is less, just update the variable.
+            stageDurationMillis = newStageDurationMillis
+        }
+
+        // Update segmentation display
+        segmentationEnabled = user.segmentationDisplay.equals("On", ignoreCase = true)
+        segmentationOverlayView.visibility = if (segmentationEnabled) View.VISIBLE else View.GONE
+
+        // Update difficulty text and pass new difficulty to game overlay
+        textViewDifficulty.text = String.format(resources.getString(R.string.difficulty_label), user.difficulty)
+        gameOverlayView.setDifficulty(user.difficulty)
+
+        // Update music volume
+        val musicVolumeValue = (user.musicVolume) / 100.0f
+        mediaPlayer.setVolume(musicVolumeValue, musicVolumeValue)
+
+        // --- Update Orientation ---
+        when (user.orientation) {
+            "Full" -> {
+                radioFull.isChecked = true
+                radioFull.visibility = View.VISIBLE
+                radioMirrorLeft.visibility = View.VISIBLE
+                radioMirrorRight.visibility = View.VISIBLE
+                modeSelector.visibility = View.VISIBLE
+                mirrorGLSurfaceView.renderer.setMirrorMode(0)
+                // Stop auto orientation if running
+                autoOrientationHandler.removeCallbacksAndMessages(null)
+            }
+            "Left Mirrored" -> {
+                radioMirrorLeft.isChecked = true
+                radioFull.visibility = View.VISIBLE
+                radioMirrorLeft.visibility = View.VISIBLE
+                radioMirrorRight.visibility = View.VISIBLE
+                modeSelector.visibility = View.VISIBLE
+                mirrorGLSurfaceView.renderer.setMirrorMode(1)
+                autoOrientationHandler.removeCallbacksAndMessages(null)
+            }
+            "Right Mirrored" -> {
+                radioMirrorRight.isChecked = true
+                radioFull.visibility = View.VISIBLE
+                radioMirrorLeft.visibility = View.VISIBLE
+                radioMirrorRight.visibility = View.VISIBLE
+                modeSelector.visibility = View.VISIBLE
+                mirrorGLSurfaceView.renderer.setMirrorMode(2)
+                autoOrientationHandler.removeCallbacksAndMessages(null)
+            }
+            "Auto" -> {
+                // Hide radio buttons since auto mode is controlling orientation.
+                radioFull.visibility = View.GONE
+                radioMirrorLeft.visibility = View.GONE
+                radioMirrorRight.visibility = View.GONE
+                modeSelector.visibility = View.GONE
+                // Optionally, reset the mirror mode to a default value until the auto check updates it.
+                mirrorGLSurfaceView.renderer.setMirrorMode(0)
+                // Start or restart the auto orientation check.
+                startAutoOrientationCheck()
+            }
+        }
+    }
+
 
 
 }

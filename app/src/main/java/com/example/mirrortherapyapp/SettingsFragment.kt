@@ -14,6 +14,8 @@ import kotlinx.coroutines.launch
 class SettingsFragment : PreferenceFragmentCompat() {
 
     companion object {
+        private const val ARG_DISABLE_OPERATION_MODE = "disable_operation_mode"
+
         private const val ARG_USER_ID = "USER_ID"
         private const val ARG_NAME = "name"
         private const val ARG_RECORD = "record"
@@ -25,19 +27,21 @@ class SettingsFragment : PreferenceFragmentCompat() {
         private const val ARG_MUSIC_VOLUME = "music_volume"
         private const val ARG_SOUNDS_VOLUME = "sounds_volume"
 
-        fun newInstance(user: User): SettingsFragment {
+
+        fun newInstance(user: User, disableOperationMode: Boolean = false): SettingsFragment {
             val fragment = SettingsFragment()
             val args = Bundle().apply {
                 putInt(ARG_USER_ID, user.id)
-                putString(ARG_NAME, user.name)
-                putInt(ARG_RECORD, user.record)
-                putString(ARG_ORIENTATION, user.orientation)
-                putString(ARG_OPERATION_MODE, user.operationMode)
-                putString(ARG_SEGMENTATION_DISPLAY, user.segmentationDisplay)
-                putString(ARG_DIFFICULTY, user.difficulty)
-                putInt(ARG_STAGE_DURATION, user.stageDuration)
-                putInt(ARG_MUSIC_VOLUME, user.musicVolume)
-                putInt(ARG_SOUNDS_VOLUME, user.soundsVolume)
+                putString("name", user.name)
+                putInt("record", user.record)
+                putString("orientation", user.orientation)
+                putString("operation_mode", user.operationMode)
+                putString("segmentation_display", user.segmentationDisplay)
+                putString("difficulty", user.difficulty)
+                putInt("stage_duration", user.stageDuration)
+                putInt("music_volume", user.musicVolume)
+                putInt("sounds_volume", user.soundsVolume)
+                putBoolean(ARG_DISABLE_OPERATION_MODE, disableOperationMode)
             }
             fragment.arguments = args
             return fragment
@@ -77,10 +81,13 @@ class SettingsFragment : PreferenceFragmentCompat() {
             userId,
             currentUser
         )
-        // Now load the preferences from XML.
+        // Load preferences from XML.
         setPreferencesFromResource(R.xml.preferences, rootKey)
 
-
+        // Disable the Operation Mode preference if the flag is set.
+        if (arguments?.getBoolean(ARG_DISABLE_OPERATION_MODE, false) == true) {
+            findPreference<ListPreference>("operation_mode")?.isEnabled = false
+        }
 
     }
 
