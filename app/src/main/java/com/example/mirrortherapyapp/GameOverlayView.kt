@@ -128,32 +128,41 @@ class GameOverlayView(context: Context, attrs: AttributeSet) : View(context, att
 
     private fun spawnBall() {
         totalBallsSpawned++
-        // Choose a random color from fixedColors.
-        val chosenColor = fixedColors.random()
+        // Initially choose a random color.
+        var chosenColor = fixedColors.random()
 
+        // If we have a target color defined, ensure that at least 1/3 are target colored.
+        stageTargetColor?.let { targetColor ->
+            // If the random color is the target color, count it.
+            if (chosenColor == targetColor) {
+                targetBallsSpawned++
+            }
+            // Calculate required minimum target balls (rounded up).
+            val requiredTargetCount = Math.ceil(totalBallsSpawned / 3.0).toInt()
+            if (targetBallsSpawned < requiredTargetCount) {
+                // Force this ball to be the target color if it isn’t already.
+                if (chosenColor != targetColor) {
+                    chosenColor = targetColor
+                    targetBallsSpawned++
+                }
+            }
+        }
+
+        // Proceed to determine x position, velocity, etc.
         val center = width / 2f
-        // Determine the interactive ball's x position:
-        // If mirror mode is Full (0), no offset; if Left (1), subtract offset; if Right (2), add offset.
         val interactiveX = when (currentMirrorMode) {
             1 -> center - targetOffset
             2 -> center + targetOffset
             else -> center
         }
-
-        // Determine velocity.
         val velocityY = Random.nextFloat() * (maxVelocityY - minVelocityY) + minVelocityY
-        // Create a unique pairId if offset is used.
-        val pairId = if (targetOffset > 0 && currentMirrorMode != 0) ballPairCounter++ else null
-
         // Create the interactive ball.
         val interactiveBall = Ball(
             x = interactiveX,
             y = -ballRadius,
             velocityY = velocityY,
             radius = ballRadius,
-            color = chosenColor,
-            isMirror = false,
-            pairId = pairId
+            color = chosenColor
         )
         interactiveBall.shader = RadialGradient(
             interactiveBall.radius,
@@ -161,13 +170,12 @@ class GameOverlayView(context: Context, attrs: AttributeSet) : View(context, att
             interactiveBall.radius,
             intArrayOf(interactiveBall.color, darkenColor(interactiveBall.color)),
             floatArrayOf(0.5f, 1.0f),
-            android.graphics.Shader.TileMode.CLAMP
+            Shader.TileMode.CLAMP
         )
         balls.add(interactiveBall)
 
-        // Create a mirror copy for every ball if an offset is applied and mode is not Full.
+        // If an offset is applied and mirror mode is active, create a mirrored copy.
         if (targetOffset > 0 && currentMirrorMode != 0) {
-            // Mirror the x position: mirrorX = 2 * center - interactiveX.
             val mirrorX = 2 * center - interactiveX
             val mirrorBall = Ball(
                 x = mirrorX,
@@ -176,7 +184,8 @@ class GameOverlayView(context: Context, attrs: AttributeSet) : View(context, att
                 radius = ballRadius,
                 color = chosenColor,
                 isMirror = true,
-                pairId = pairId
+                // Optionally, assign a pairId here if you want synchronized removal.
+                pairId = if (targetOffset > 0 && currentMirrorMode != 0) ballPairCounter++ else null
             )
             mirrorBall.shader = RadialGradient(
                 mirrorBall.radius,
@@ -184,11 +193,12 @@ class GameOverlayView(context: Context, attrs: AttributeSet) : View(context, att
                 mirrorBall.radius,
                 intArrayOf(mirrorBall.color, darkenColor(mirrorBall.color)),
                 floatArrayOf(0.5f, 1.0f),
-                android.graphics.Shader.TileMode.CLAMP
+                Shader.TileMode.CLAMP
             )
             balls.add(mirrorBall)
         }
     }
+
 
 
 
@@ -216,38 +226,58 @@ class GameOverlayView(context: Context, attrs: AttributeSet) : View(context, att
     // New method: check if the segmentation mask touches any ball.
     private fun checkSegmentationCollision() {
         val mask = segmentationMask ?: return
-        // Scale factors from view coordinates to segmentation mask coordinates.
-        val scaleX = mask.width.toFloat() / width.toFloat()
-        val scaleY = mask.height.toFloat() / height.toFloat()
-        // Iterate over a copy of the balls list to avoid concurrent modification.
+        val scaleX = mask.width.toFloat() / width
+        val scaleY = mask.height.toFloat() / height
+        // Work on a copy of the balls list to avoid concurrent modifications.
         for (ball in balls.toList()) {
             if (!ball.isHit) {
                 val maskX = (ball.x * scaleX).toInt().coerceIn(0, mask.width - 1)
                 val maskY = (ball.y * scaleY).toInt().coerceIn(0, mask.height - 1)
                 val pixel = mask.getPixel(maskX, maskY)
                 val alpha = Color.alpha(pixel)
-                // If the mask indicates segmentation (alpha > 128), treat as collision.
                 if (alpha > 128) {
+                    // Mark as hit and start the removal animation.
                     ball.isHit = true
-                    ValueAnimator.ofFloat(1.0f, 1.5f, 0f).apply {
-                        duration = 300
-                        addUpdateListener { animator ->
-                            ball.scale = animator.animatedValue as Float
-                            invalidate()
-                        }
-                        addListener(object : AnimatorListenerAdapter() {
-                            override fun onAnimationEnd(animation: Animator) {
-                                // Post the removal so that it happens after the current iteration.
-                                Handler(Looper.getMainLooper()).post { balls.remove(ball) }
+                    if (ball.pairId != null) {
+                        // Gather all balls with the same pairId.
+                        val group = balls.filter { it.pairId == ball.pairId }
+                        ValueAnimator.ofFloat(1.0f, 1.5f, 0f).apply {
+                            duration = 300
+                            addUpdateListener { animator ->
+                                val newScale = animator.animatedValue as Float
+                                group.forEach { it.scale = newScale }
+                                postInvalidateOnAnimation()
                             }
-                        })
-                        start()
+                            addListener(object : AnimatorListenerAdapter() {
+                                override fun onAnimationEnd(animation: Animator) {
+                                    balls.removeAll { it.pairId == ball.pairId }
+                                }
+                            })
+                            start()
+                        }
+                    } else {
+                        // No pair, animate removal of this ball only.
+                        ValueAnimator.ofFloat(1.0f, 1.5f, 0f).apply {
+                            duration = 300
+                            addUpdateListener { animator ->
+                                ball.scale = animator.animatedValue as Float
+                                postInvalidateOnAnimation()
+                            }
+                            addListener(object : AnimatorListenerAdapter() {
+                                override fun onAnimationEnd(animation: Animator) {
+                                    balls.remove(ball)
+                                }
+                            })
+                            start()
+                        }
                     }
+                    // Optionally, invoke the ball tap listener.
                     onBallTapListener?.invoke(ball.color)
                 }
             }
         }
     }
+
 
 
     override fun onDraw(canvas: Canvas) {
@@ -403,20 +433,20 @@ class GameOverlayView(context: Context, attrs: AttributeSet) : View(context, att
         when (difficulty.toLowerCase()) {
             "easy" -> {
                 // Slower falling balls for easy difficulty.
-                minVelocityY = 2f
-                maxVelocityY = 4f
-                spawnInterval = 1200L // Longer interval = fewer balls.
+                minVelocityY = 3f// 2f
+                maxVelocityY = 3f//4f
+                spawnInterval = 3600L // Longer interval = fewer balls.
             }
             "hard" -> {
                 // Faster falling balls for hard difficulty.
-                minVelocityY = 20f
-                maxVelocityY = 30f
-                spawnInterval = 400L // Shorter interval = more balls.
+                minVelocityY = 25f//20f
+                maxVelocityY = 25f//30f
+                spawnInterval = 800L // Shorter interval = more balls.
             }
             else -> { // "medium" or any other value defaults to medium behavior.
-                minVelocityY = 5f
-                maxVelocityY = 12f
-                spawnInterval = 700L
+                minVelocityY = 7f//5f
+                maxVelocityY = 7f//12f
+                spawnInterval = 1600L
             }
         }
     }

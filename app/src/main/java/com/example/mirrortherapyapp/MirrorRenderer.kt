@@ -5,16 +5,26 @@ import android.graphics.SurfaceTexture
 import android.opengl.GLES11Ext
 import android.opengl.GLES20
 import android.opengl.Matrix
+import android.os.SystemClock
+import android.util.Log
 import android.view.Surface
 import android.opengl.GLSurfaceView
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
+import java.util.concurrent.atomic.AtomicBoolean
 
 class MirrorRenderer(val context: Context) : GLSurfaceView.Renderer, SurfaceTexture.OnFrameAvailableListener {
 
+    companion object {
+        private const val TAG = "MirrorRenderer"
+        // Threshold in ms to trigger a watchdog warning.
+        private const val FRAME_WATCHDOG_THRESHOLD = 3000L
+    }
+
     private var textureId = -1
     private lateinit var surfaceTexture: SurfaceTexture
-    @Volatile private var updateSurface = false
+    // Use an AtomicBoolean to track whether a new frame is available.
+    private val updateSurfaceFlag = AtomicBoolean(false)
 
     private var program = 0
     private var positionHandle = 0
@@ -28,7 +38,10 @@ class MirrorRenderer(val context: Context) : GLSurfaceView.Renderer, SurfaceText
     // Mirror mode: 0 = full; 1 = mirror left; 2 = mirror right.
     private var mirrorMode = 0
 
-    // Vertex data for a full-screen quad (x, y, u, v)
+    // Timestamp of the last frame update.
+    @Volatile var lastFrameTime: Long = 0
+
+    // Vertex data for a full-screen quad (x, y, u, v).
     private val vertexData = floatArrayOf(
         -1f,  1f, 0f, 0f,
         -1f, -1f, 0f, 1f,
@@ -44,17 +57,13 @@ class MirrorRenderer(val context: Context) : GLSurfaceView.Renderer, SurfaceText
             position(0)
         }
 
-    fun getTextureId(): Int {
-        return textureId
-    }
-
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
         textureId = createExternalTexture()
         surfaceTexture = SurfaceTexture(textureId)
         surfaceTexture.setOnFrameAvailableListener(this)
+        lastFrameTime = SystemClock.elapsedRealtime()
 
         program = createProgram(vertexShaderCode, fragmentShaderCode)
-
         positionHandle = GLES20.glGetAttribLocation(program, "aPosition")
         texCoordHandle = GLES20.glGetAttribLocation(program, "aTexCoord")
         textureHandle = GLES20.glGetUniformLocation(program, "sTexture")
@@ -64,6 +73,7 @@ class MirrorRenderer(val context: Context) : GLSurfaceView.Renderer, SurfaceText
 
         Matrix.setIdentityM(mvpMatrix, 0)
         GLES20.glClearColor(0f, 0f, 0f, 1f)
+        Log.d(TAG, "Surface created, textureId: $textureId")
     }
 
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
@@ -73,12 +83,27 @@ class MirrorRenderer(val context: Context) : GLSurfaceView.Renderer, SurfaceText
     }
 
     override fun onDrawFrame(gl: GL10?) {
-        synchronized(this) {
-            if (updateSurface) {
-                surfaceTexture.updateTexImage()
-                updateSurface = false
-            }
+        val currentTime = SystemClock.elapsedRealtime()
+        val delta = currentTime - lastFrameTime
+        Log.d(TAG, "onDrawFrame: currentTime=$currentTime, delta=$delta")
+        if (delta > FRAME_WATCHDOG_THRESHOLD) {
+            Log.w(TAG, "No new frame received in $FRAME_WATCHDOG_THRESHOLD ms!")
         }
+
+        if (updateSurfaceFlag.compareAndSet(true, false)) {
+            try {
+                Log.d(TAG, "Calling updateTexImage() at $currentTime")
+                surfaceTexture.updateTexImage()
+                GLES20.glFlush()
+                lastFrameTime = currentTime
+                Log.d(TAG, "Texture updated successfully at $currentTime")
+            } catch (e: Exception) {
+                Log.e(TAG, "Exception during updateTexImage(): ${e.message}")
+            }
+        } else {
+            Log.d(TAG, "No new frame; using previous texture")
+        }
+
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
         GLES20.glUseProgram(program)
         GLES20.glUniformMatrix4fv(mvpMatrixHandle, 1, false, mvpMatrix, 0)
@@ -100,22 +125,29 @@ class MirrorRenderer(val context: Context) : GLSurfaceView.Renderer, SurfaceText
 
         GLES20.glDisableVertexAttribArray(positionHandle)
         GLES20.glDisableVertexAttribArray(texCoordHandle)
+
+        val error = GLES20.glGetError()
+        if (error != GLES20.GL_NO_ERROR) {
+            Log.e(TAG, "GL error: $error")
+        }
     }
 
     override fun onFrameAvailable(surfaceTexture: SurfaceTexture?) {
-        updateSurface = true
+        updateSurfaceFlag.set(true)
+        Log.d(TAG, "Frame available at ${SystemClock.elapsedRealtime()}")
     }
 
-    // Returns a Surface wrapping the SurfaceTexture for CameraX.
-    fun getSurface(): Surface {
-        return Surface(surfaceTexture)
-    }
+    // Returns the Surface for the CameraX binding.
+    fun getSurface(): Surface = Surface(surfaceTexture)
+
+    // Returns the texture ID. This method is now available.
+    fun getTextureId(): Int = textureId
 
     fun setMirrorMode(mode: Int) {
-        // 0: Full, 1: Mirror Left, 2: Mirror Right.
         mirrorMode = mode
     }
 
+    // Utility method: create an external texture.
     private fun createExternalTexture(): Int {
         val textures = IntArray(1)
         GLES20.glGenTextures(1, textures, 0)
@@ -160,13 +192,11 @@ class MirrorRenderer(val context: Context) : GLSurfaceView.Renderer, SurfaceText
         precision highp float;
         uniform samplerExternalOES sTexture;
         uniform int uMirrorMode; // 0 = full, 1 = mirror left, 2 = mirror right.
-        uniform vec2 uResolution; // resolution of the output (in pixels)
+        uniform vec2 uResolution;
         varying vec2 vTexCoord;
         
-        // Custom 2x2 box filter sampling function.
         vec4 boxFilter(vec2 tc) {
-            vec2 offset = 1.0 / uResolution; // one pixel offset in texture coords
-            // Sample four neighboring texels
+            vec2 offset = 1.0 / uResolution;
             vec4 sample1 = texture2D(sTexture, tc + vec2(-offset.x, -offset.y));
             vec4 sample2 = texture2D(sTexture, tc + vec2( offset.x, -offset.y));
             vec4 sample3 = texture2D(sTexture, tc + vec2(-offset.x,  offset.y));
@@ -175,26 +205,20 @@ class MirrorRenderer(val context: Context) : GLSurfaceView.Renderer, SurfaceText
         }
         
         void main() {
-            // Start with the interpolated texture coordinate.
             vec2 tc = vTexCoord;
-            // Apply mirror logic based on mode.
             if(uMirrorMode == 1) {
-                // Mirror Left: For tex coords in the right half (tc.x > 0.5), sample from the left half.
                 if(tc.x > 0.5) {
-                    float factor = (tc.x - 0.5) * 2.0; // factor goes 0 to 1 over right half
-                    tc.x = (1.0 - factor) * 0.5; // mirror back into left half
+                    float factor = (tc.x - 0.5) * 2.0;
+                    tc.x = (1.0 - factor) * 0.5;
                 }
             } else if(uMirrorMode == 2) {
-                // Mirror Right: For tex coords in the left half (tc.x < 0.5), sample from the right half.
                 if(tc.x < 0.5) {
-                    float factor = tc.x * 2.0; // factor goes 0 to 1 over left half
-                    tc.x = 0.5 + (1.0 - factor) * 0.5; // mirror into right half
+                    float factor = tc.x * 2.0;
+                    tc.x = 0.5 + (1.0 - factor) * 0.5;
                 }
             }
-            // Use the custom box filter for smoother sampling.
             vec4 color = boxFilter(tc);
             gl_FragColor = color;
         }
-
     """.trimIndent()
 }
