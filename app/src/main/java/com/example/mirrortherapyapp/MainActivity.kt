@@ -24,6 +24,7 @@ import android.view.Surface
 import android.view.View
 import android.widget.Button
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.TextView
@@ -416,6 +417,14 @@ class MainActivity : AppCompatActivity() {
 
         // Inform GameOverlayView about the target color (and reset counters).
         gameOverlayView.setTargetColor(stageTargetColor)
+
+        // Apply 50% transparency (alpha = 128 in ARGB format)
+        val transparentColor = Color.argb(128, Color.red(stageTargetColor), Color.green(stageTargetColor), Color.blue(stageTargetColor))
+
+
+        // Change the background color of the bottom layout
+        val uiPanel = findViewById<LinearLayout>(R.id.uiPanel)
+        uiPanel.setBackgroundColor(transparentColor)
 
         // Continue with the countdown and stage start...
         showGetReadySequence(stageTargetColor) {

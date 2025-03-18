@@ -131,38 +131,45 @@ class GameOverlayView(context: Context, attrs: AttributeSet) : View(context, att
         // Initially choose a random color.
         var chosenColor = fixedColors.random()
 
-        // If we have a target color defined, ensure that at least 1/3 are target colored.
+        // If we have a target color defined, ensure that at least 1/3 are target-colored.
         stageTargetColor?.let { targetColor ->
-            // If the random color is the target color, count it.
             if (chosenColor == targetColor) {
                 targetBallsSpawned++
             }
-            // Calculate required minimum target balls (rounded up).
             val requiredTargetCount = Math.ceil(totalBallsSpawned / 3.0).toInt()
-            if (targetBallsSpawned < requiredTargetCount) {
-                // Force this ball to be the target color if it isn’t already.
-                if (chosenColor != targetColor) {
-                    chosenColor = targetColor
-                    targetBallsSpawned++
-                }
+            if (targetBallsSpawned < requiredTargetCount && chosenColor != targetColor) {
+                chosenColor = targetColor
+                targetBallsSpawned++
             }
         }
 
-        // Proceed to determine x position, velocity, etc.
         val center = width / 2f
+        // Determine x position for the interactive ball based on mirror mode.
         val interactiveX = when (currentMirrorMode) {
-            1 -> center - targetOffset
-            2 -> center + targetOffset
+            1 -> center - targetOffset  // left mirror
+            2 -> center + targetOffset  // right mirror
             else -> center
         }
         val velocityY = Random.nextFloat() * (maxVelocityY - minVelocityY) + minVelocityY
+
+        // If offset is applied and mirror mode is active, generate a pairId for both balls.
+        val pairId = if (targetOffset > 0 && currentMirrorMode != 0) {
+            val id = ballPairCounter
+            ballPairCounter++  // increment once so both get the same id.
+            id
+        } else {
+            null
+        }
+
         // Create the interactive ball.
         val interactiveBall = Ball(
             x = interactiveX,
             y = -ballRadius,
             velocityY = velocityY,
             radius = ballRadius,
-            color = chosenColor
+            color = chosenColor,
+            isMirror = false,
+            pairId = pairId
         )
         interactiveBall.shader = RadialGradient(
             interactiveBall.radius,
@@ -174,8 +181,9 @@ class GameOverlayView(context: Context, attrs: AttributeSet) : View(context, att
         )
         balls.add(interactiveBall)
 
-        // If an offset is applied and mirror mode is active, create a mirrored copy.
+        // Create the mirrored copy for every ball if an offset is applied and mirror mode is active.
         if (targetOffset > 0 && currentMirrorMode != 0) {
+            // Mirror x position: mirrorX = 2 * center - interactiveX.
             val mirrorX = 2 * center - interactiveX
             val mirrorBall = Ball(
                 x = mirrorX,
@@ -184,8 +192,7 @@ class GameOverlayView(context: Context, attrs: AttributeSet) : View(context, att
                 radius = ballRadius,
                 color = chosenColor,
                 isMirror = true,
-                // Optionally, assign a pairId here if you want synchronized removal.
-                pairId = if (targetOffset > 0 && currentMirrorMode != 0) ballPairCounter++ else null
+                pairId = pairId
             )
             mirrorBall.shader = RadialGradient(
                 mirrorBall.radius,
@@ -198,6 +205,7 @@ class GameOverlayView(context: Context, attrs: AttributeSet) : View(context, att
             balls.add(mirrorBall)
         }
     }
+
 
 
 
