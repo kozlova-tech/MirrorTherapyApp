@@ -26,18 +26,18 @@ class UserSettingsDataStore(
     private var user: User
 ) : PreferenceDataStore() {
 
-    // Return string values from the cached user.
     override fun getString(key: String?, defValue: String?): String? {
         return when (key) {
             "orientation" -> user.orientation
             "operation_mode" -> user.operationMode
             "difficulty" -> user.difficulty
             "segmentation_display" -> user.segmentationDisplay
+            "limb_in_focus" -> user.limbInFocus
+            "visual_experience" -> user.visualExperience
             else -> defValue
         }
     }
 
-    // Update string values in the cached user and save.
     override fun putString(key: String?, value: String?) {
         if (key == null || value == null) return
         user = when (key) {
@@ -45,10 +45,13 @@ class UserSettingsDataStore(
             "operation_mode" -> user.copy(operationMode = value)
             "difficulty" -> user.copy(difficulty = value)
             "segmentation_display" -> user.copy(segmentationDisplay = value)
+            "limb_in_focus" -> user.copy(limbInFocus = value)
+            "visual_experience" -> user.copy(visualExperience = value)
             else -> user
         }
         saveUser()
     }
+
 
     // Return integer values from the cached user.
     override fun getInt(key: String?, defValue: Int): Int {

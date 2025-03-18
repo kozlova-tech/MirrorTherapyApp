@@ -19,6 +19,22 @@
             android:defaultValue="Game"
             app:useSimpleSummaryProvider="true" />
         <ListPreference
+            android:key="limb_in_focus"
+            android:title="Limb In Focus"
+            android:summary="Select the limb to focus on"
+            android:defaultValue="Leg"
+            android:entries="@array/limb_in_focus_options"
+            android:entryValues="@array/limb_in_focus_options"
+            app:useSimpleSummaryProvider="true" />
+        <ListPreference
+            android:key="visual_experience"
+            android:title="Visual Experience"
+            android:summary="Select the visual experience mode."
+            android:entries="@array/visual_experience_entries"
+            android:entryValues="@array/visual_experience_values"
+            android:defaultValue="Standard"
+            app:useSimpleSummaryProvider="true" />
+        <ListPreference
             android:key="segmentation_display"
             android:title="Segmentation Display"
             android:entries="@array/segmentation_entries"

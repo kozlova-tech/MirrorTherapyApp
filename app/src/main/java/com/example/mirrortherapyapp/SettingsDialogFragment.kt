@@ -22,6 +22,8 @@ class SettingsDialogFragment : DialogFragment() {
                 putString("operation_mode", user.operationMode)
                 putString("segmentation_display", user.segmentationDisplay)
                 putString("difficulty", user.difficulty)
+                putString("limb_in_focus", user.limbInFocus)
+                putString ("visual_experience", user.visualExperience)
                 putInt("stage_duration", user.stageDuration)
                 putInt("music_volume", user.musicVolume)
                 putInt("sounds_volume", user.soundsVolume)
@@ -64,10 +66,12 @@ class SettingsDialogFragment : DialogFragment() {
             operationMode = arguments?.getString("operation_mode") ?: "Game",
             segmentationDisplay = arguments?.getString("segmentation_display") ?: "Off",
             difficulty = arguments?.getString("difficulty") ?: "Medium",
+            limbInFocus = arguments?.getString("limb_in_focus") ?: "Leg",
             stageDuration = arguments?.getInt("stage_duration") ?: 20,
             musicVolume = arguments?.getInt("music_volume") ?: 50,
             soundsVolume = arguments?.getInt("sounds_volume") ?: 50,
-            targetOffset = arguments?.getInt("target_offset") ?: 0
+            targetOffset = arguments?.getInt("target_offset") ?: 0,
+            visualExperience = arguments?.getString("visual_experience") ?: "Standard"
         )
     }
 

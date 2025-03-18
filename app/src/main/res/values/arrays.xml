@@ -37,4 +37,16 @@
         <item>Medium</item>
         <item>Hard</item>
     </string-array>
+    <string-array name="limb_in_focus_options">
+        <item>Leg</item>
+        <item>Arm</item>
+    </string-array>
+    <string-array name="visual_experience_entries">
+        <item>Standard</item>
+        <item>Cardboard</item>
+    </string-array>
+    <string-array name="visual_experience_values">
+        <item>Standard</item>
+        <item>Cardboard</item>
+    </string-array>
 </resources>

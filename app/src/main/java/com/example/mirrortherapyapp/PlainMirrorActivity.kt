@@ -1,14 +1,12 @@
 package com.example.mirrortherapyapp
 
 import android.Manifest
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.view.Surface
-import android.view.View
-import android.widget.ImageView
-import android.widget.PopupMenu
+import android.widget.RadioButton
+import android.widget.RadioGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
@@ -20,7 +18,10 @@ import android.util.Size
 class PlainMirrorActivity : AppCompatActivity() {
 
     private lateinit var mirrorGLSurfaceView: MirrorGLSurfaceView
-    private lateinit var imgCog: ImageView
+    private lateinit var modeSelector: RadioGroup
+    private lateinit var radioFull: RadioButton
+    private lateinit var radioMirrorLeft: RadioButton
+    private lateinit var radioMirrorRight: RadioButton
 
     private val CAMERA_PERMISSION_REQUEST_CODE = 1001
 
@@ -28,34 +29,35 @@ class PlainMirrorActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_plain_mirror)
 
+        // Retrieve views from XML.
         mirrorGLSurfaceView = findViewById(R.id.mirrorGLSurfaceView)
-        imgCog = findViewById(R.id.imgCog)
+        modeSelector = findViewById(R.id.modeSelector)
+        radioFull = findViewById(R.id.radioFull)
+        radioMirrorLeft = findViewById(R.id.radioMirrorLeft)
+        radioMirrorRight = findViewById(R.id.radioMirrorRight)
 
-        // Set up the cog icon to display a popup menu.
-        imgCog.setOnClickListener { view ->
-            val popup = PopupMenu(this, view)
-            popup.menuInflater.inflate(R.menu.cog_menu, popup.menu)
-            popup.setOnMenuItemClickListener { item ->
-                when (item.itemId) {
-                    R.id.menu_settings -> {
-                        // Launch the settings activity.
-                        val intent = Intent(this, SettingsActivity::class.java)
-                        // Optionally pass the user ID if needed.
-                        intent.putExtra("USER_ID", intent.getIntExtra("USER_ID", 0))
-                        startActivity(intent)
-                        true
-                    }
-                    R.id.menu_quit -> {
-                        finishAffinity()
-                        true
-                    }
-                    else -> false
-                }
+        // Set default mirror mode ("Full") and mark the corresponding radio button.
+        radioFull.isChecked = true
+        mirrorGLSurfaceView.renderer.setMirrorMode(0)
+
+        // Set listeners so that when the radio buttons are selected the mirror mode changes.
+        radioFull.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                mirrorGLSurfaceView.renderer.setMirrorMode(0)
             }
-            popup.show()
+        }
+        radioMirrorLeft.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                mirrorGLSurfaceView.renderer.setMirrorMode(1)
+            }
+        }
+        radioMirrorRight.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                mirrorGLSurfaceView.renderer.setMirrorMode(2)
+            }
         }
 
-        // Check for camera permission and start the camera preview.
+        // Start the camera preview once permissions are granted.
         if (allPermissionsGranted()) {
             startCamera()
         } else {
@@ -68,8 +70,10 @@ class PlainMirrorActivity : AppCompatActivity() {
     }
 
     private fun allPermissionsGranted(): Boolean {
-        return ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) ==
-                PackageManager.PERMISSION_GRANTED
+        return ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED
     }
 
     private fun startCamera() {
@@ -78,6 +82,7 @@ class PlainMirrorActivity : AppCompatActivity() {
             val cameraProvider = cameraProviderFuture.get()
             val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
+            // Determine device rotation.
             val rotation = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 display?.rotation ?: Surface.ROTATION_0
             } else {
@@ -88,6 +93,7 @@ class PlainMirrorActivity : AppCompatActivity() {
                 .setTargetResolution(Size(1920, 1080))
                 .setTargetRotation(rotation)
                 .build()
+
             preview.setSurfaceProvider(mirrorGLSurfaceView.getSurfaceProvider())
 
             try {
@@ -98,6 +104,4 @@ class PlainMirrorActivity : AppCompatActivity() {
             }
         }, ContextCompat.getMainExecutor(this))
     }
-
-    // Optionally override onRequestPermissionsResult if needed.
 }

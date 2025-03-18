@@ -31,6 +31,10 @@ data class User(
     @ColumnInfo(name = "sounds_volume")
     val soundsVolume: Int = 50,
     @ColumnInfo(name = "target_offset")
-    val targetOffset: Int = 0
-
+    val targetOffset: Int = 0,
+    @ColumnInfo(name = "limb_in_focus")
+    val limbInFocus: String = "Leg",
+    @ColumnInfo(name = "visual_experience")
+    val visualExperience: String = "Standard"
 ) : Parcelable
+

@@ -202,6 +202,11 @@ class MainActivity : AppCompatActivity() {
         val targetOffsetValue = currentUser?.targetOffset ?: 0
         gameOverlayView.setTargetOffset(targetOffsetValue)
 
+        val limbFocus = currentUser?.limbInFocus ?: "Leg"
+        val ballSizeMultiplier = if (limbFocus == "Leg") 2.0f else 1.0f
+        gameOverlayView.setBallSizeMultiplier(ballSizeMultiplier)
+
+
         // Set the orientation based on the user's stored setting.
         // Expected values: "Full", "Left Mirrored", "Right Mirrored"
         val orientation = currentUser?.orientation ?: "Right Mirrored"
@@ -706,6 +711,11 @@ class MainActivity : AppCompatActivity() {
         // Update music volume
         val musicVolumeValue = (user.musicVolume) / 100.0f
         mediaPlayer.setVolume(musicVolumeValue, musicVolumeValue)
+
+        // Update Limb in focus relevant data
+        val limbFocus = user.limbInFocus
+        val ballSizeMultiplier = if (limbFocus == "Leg") 2.0f else 1.0f
+        gameOverlayView.setBallSizeMultiplier(ballSizeMultiplier)
 
         // After currentUser is loaded:
         val targetOffsetValue = user.targetOffset

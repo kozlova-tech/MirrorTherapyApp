@@ -66,7 +66,8 @@ class GameOverlayView(context: Context, attrs: AttributeSet) : View(context, att
     private var lastSpawnTime = 0L
 
     // Ball properties
-    private val ballRadius = 40f
+    private var ballSizeMultiplier: Float = 1.0f // Default to normal size
+    private val ballRadius = 40f * ballSizeMultiplier
     private var minVelocityY = 5f
     private var maxVelocityY = 12f
 
@@ -83,6 +84,7 @@ class GameOverlayView(context: Context, attrs: AttributeSet) : View(context, att
 
     private var targetOffset: Int = 0
     private var currentMirrorMode: Int = 0  // 0: full, 1: left, 2: right
+
 
     fun setTargetOffset(offset: Int) {
         this.targetOffset = offset
@@ -166,7 +168,7 @@ class GameOverlayView(context: Context, attrs: AttributeSet) : View(context, att
             x = interactiveX,
             y = -ballRadius,
             velocityY = velocityY,
-            radius = ballRadius,
+            radius = ballRadius * ballSizeMultiplier,
             color = chosenColor,
             isMirror = false,
             pairId = pairId
@@ -457,6 +459,11 @@ class GameOverlayView(context: Context, attrs: AttributeSet) : View(context, att
                 spawnInterval = 1600L
             }
         }
+    }
+
+    fun setBallSizeMultiplier(multiplier: Float) {
+        ballSizeMultiplier = multiplier
+        invalidate() // Redraw the view so that changes take effect immediately
     }
 
 }

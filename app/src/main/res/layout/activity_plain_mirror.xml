@@ -1,25 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:keepScreenOn="true">
 
-    <!-- Mirror view: reusing the same MirrorGLSurfaceView as in MainActivity -->
+    <!-- OpenGL-based camera preview -->
     <com.example.mirrortherapyapp.MirrorGLSurfaceView
         android:id="@+id/mirrorGLSurfaceView"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- Cog icon overlay -->
+    <!-- Optional segmentation overlay (if you use it) -->
     <ImageView
-        android:id="@+id/imgCog"
-        android:layout_width="72dp"
-        android:layout_height="72dp"
-        android:layout_gravity="top|left"
-        android:padding="16dp"
-        android:scaleType="centerInside"
-        android:src="@drawable/cog"
-        android:contentDescription="Settings" />
+        android:id="@+id/segmentationOverlayView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0.5"
+        android:scaleType="fitXY" />
 
-
+    <!-- Mirror mode selector -->
+    <RadioGroup
+        android:id="@+id/modeSelector"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|center_horizontal"
+        android:orientation="horizontal"
+        android:padding="16dp">
+        <RadioButton
+            android:id="@+id/radioFull"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Full" />
+        <RadioButton
+            android:id="@+id/radioMirrorLeft"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Mirror Left" />
+        <RadioButton
+            android:id="@+id/radioMirrorRight"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Mirror Right" />
+    </RadioGroup>
 </FrameLayout>
